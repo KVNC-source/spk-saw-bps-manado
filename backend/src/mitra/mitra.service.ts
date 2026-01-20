@@ -1,25 +1,25 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Mitra } from '@prisma/client';
 
 @Injectable()
 export class MitraService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<Mitra[]> {
+  async findAll() {
     return this.prisma.mitra.findMany({
-      include: {
-        user: true,
-      },
+      orderBy: { nama_mitra: 'asc' },
     });
   }
 
-  async findById(id: string): Promise<Mitra | null> {
-    return this.prisma.mitra.findUnique({
+  async findOne(id: number) {
+    const mitra = await this.prisma.mitra.findUnique({
       where: { id },
-      include: {
-        user: true,
-      },
     });
+
+    if (!mitra) {
+      throw new NotFoundException('Mitra tidak ditemukan');
+    }
+
+    return mitra;
   }
 }

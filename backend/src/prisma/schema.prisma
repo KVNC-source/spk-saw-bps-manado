@@ -1,0 +1,152 @@
+// ===================================
+// Prisma Schema (DB-FIRST, SPK SCHEMA)
+// ===================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["spk"]
+}
+
+//
+// ==============================
+// MITRA
+// ==============================
+model Mitra {
+  id          Int      @id @default(autoincrement())
+  nama_mitra  String
+  nik         String?
+  email       String?
+  alamat      String?
+  no_hp       String?
+  bank        String?
+  no_rekening String?
+  created_at  DateTime @default(now())
+
+  alokasi AlokasiMitra[]
+  spk     SpkDocument[]
+
+  @@map("mitra")
+  @@schema("spk")
+}
+
+//
+// ==============================
+// MATA ANGGARAN
+// ==============================
+model MataAnggaran {
+  id            Int      @id @default(autoincrement())
+  kode_anggaran String
+  nama_anggaran String
+  tahun         Int
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  kegiatan Kegiatan[]
+
+  @@unique([kode_anggaran, tahun])
+  @@map("mata_anggaran")
+  @@schema("spk")
+}
+
+//
+// ==============================
+// KEGIATAN
+// ==============================
+model Kegiatan {
+  id               Int      @id @default(autoincrement())
+  kode_kegiatan    String?
+  nama_kegiatan    String
+  satuan           String?
+  mata_anggaran_id Int
+  created_at       DateTime @default(now())
+
+  mataAnggaran MataAnggaran   @relation(fields: [mata_anggaran_id], references: [id])
+  alokasi      AlokasiMitra[]
+
+  @@map("kegiatan")
+  @@schema("spk")
+}
+
+//
+// ==============================
+// ALOKASI MITRA
+// ==============================
+model AlokasiMitra {
+  id          Int      @id @default(autoincrement())
+  tahun       Int
+  bulan       Int
+  mitra_id    Int
+  kegiatan_id Int
+  volume      Decimal
+  tarif       Decimal
+  jumlah      Decimal
+  status      String   @default("DRAFT")
+  created_at  DateTime @default(now())
+
+  mitra    Mitra    @relation(fields: [mitra_id], references: [id])
+  kegiatan Kegiatan @relation(fields: [kegiatan_id], references: [id])
+
+  @@map("alokasi_mitra")
+  @@schema("spk")
+}
+
+//
+// ==============================
+// SPK DOCUMENT
+// ==============================
+model SpkDocument {
+  id               Int      @id @default(autoincrement())
+  tahun            Int
+  bulan            Int
+  mitra_id         Int
+
+  saw_result_id    Int?     // 👈 MAKE THIS OPTIONAL
+
+  total_honorarium Decimal
+  nomor_spk        String
+  created_at       DateTime @default(now())
+
+  mitra            Mitra    @relation(fields: [mitra_id], references: [id])
+
+  @@map("spk_document")
+  @@schema("spk")
+}
+
+
+//
+// ==============================
+// VIEWS (READ ONLY)
+// ==============================
+model VSpkRekap {
+  tahun         Int
+  bulan         Int
+  nama_mitra    String
+  kode_anggaran String
+  nama_anggaran String
+  total_nilai   Decimal
+
+  @@map("v_spk_rekap")
+  @@ignore
+  @@schema("spk")
+}
+
+model VBastRincian {
+  tahun         Int
+  bulan         Int
+  nama_mitra    String
+  nama_kegiatan String
+  kode_anggaran String
+  volume        Decimal
+  tarif         Decimal
+  jumlah        Decimal
+
+  @@map("v_bast_rincian")
+  @@ignore
+  @@schema("spk")
+}
