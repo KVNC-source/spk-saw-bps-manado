@@ -1,4 +1,4 @@
-import { IsInt, Min, Max } from 'class-validator';
+import { IsInt, Min, Max, IsPositive } from 'class-validator';
 
 export class CalculateSawDto {
   @IsInt()
@@ -8,4 +8,9 @@ export class CalculateSawDto {
   @Min(1)
   @Max(12)
   bulan: number;
+
+  // ✅ MASTER ROLE (selected by admin)
+  @IsInt()
+  @IsPositive()
+  spkRoleId: number;
 }

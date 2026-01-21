@@ -4,19 +4,19 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { SawModule } from './spk/saw/saw.module';
+import { SpkModule } from './spk/spk.module';
 import { MitraModule } from './mitra/mitra.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    // 👇 THIS LINE IS THE FIX
     ConfigModule.forRoot({
-      isGlobal: true, // makes process.env available everywhere
+      isGlobal: true,
     }),
-
     PrismaModule,
     MitraModule,
     SawModule,
+    SpkModule, // 👈 THIS IS REQUIRED
   ],
   controllers: [AppController],
   providers: [AppService],

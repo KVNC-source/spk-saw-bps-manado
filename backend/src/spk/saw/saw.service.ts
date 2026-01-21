@@ -36,6 +36,30 @@ const SAW_CRITERIA: SawCriterion[] = [
   },
 ];
 
+/* ─────────────────────────────
+ * SPK TITLE FORMATTER
+ * ───────────────────────────── */
+type KegiatanTitleInput = {
+  nama: string;
+  periode: string;
+};
+
+function formatSpkKegiatan(kegiatanList: KegiatanTitleInput[]): string {
+  if (!kegiatanList || kegiatanList.length === 0) {
+    throw new Error('SPK kegiatan list cannot be empty');
+  }
+
+  const formatted = kegiatanList.map((k) =>
+    `${k.nama} ${k.periode}`.trim().toUpperCase(),
+  );
+
+  if (formatted.length === 1) return formatted[0];
+  if (formatted.length === 2) return `${formatted[0]} DAN ${formatted[1]}`;
+
+  const last = formatted.pop();
+  return `${formatted.join(', ')}, DAN ${last}`;
+}
+
 @Injectable()
 export class SawService {
   constructor(
@@ -70,6 +94,7 @@ export class SawService {
       },
       include: {
         mitra: true,
+        kegiatan: true, // IMPORTANT: this relation EXISTS
       },
     });
 
@@ -78,6 +103,26 @@ export class SawService {
         'Tidak ada data alokasi mitra APPROVED untuk periode ini',
       );
     }
+
+    /* ─────────────────────────────
+     * 1️⃣b Build SPK kegiatan title (FIXED)
+     * ───────────────────────────── */
+    const kegiatanMap = new Map<number, string>();
+
+    for (const row of alokasi) {
+      if (!kegiatanMap.has(row.kegiatan_id)) {
+        kegiatanMap.set(row.kegiatan_id, row.kegiatan.nama_kegiatan);
+      }
+    }
+
+    const kegiatanForTitle: KegiatanTitleInput[] = Array.from(
+      kegiatanMap.values(),
+    ).map((nama) => ({
+      nama,
+      periode: `${bulan} ${tahun}`, // PERIODE SESUAI DOCX
+    }));
+
+    const spk_kegiatan = formatSpkKegiatan(kegiatanForTitle);
 
     /* ─────────────────────────────
      * 2️⃣ Aggregate per mitra
@@ -172,19 +217,20 @@ export class SawService {
      * 5️⃣ Ranking
      * ───────────────────────────── */
     results.sort((a, b) => b.nilaiPreferensi - a.nilaiPreferensi);
-
     results.forEach((r, index) => {
       (r as any).peringkat = index + 1;
     });
 
     /* ─────────────────────────────
-     * 6️⃣ Generate SPK (atomic intent)
+     * 6️⃣ Generate SPK
      * ───────────────────────────── */
     for (const r of results) {
       await this.spkService.createSpk({
         tahun,
         bulan,
         mitraId: r.mitraId,
+        spkKegiatan: spk_kegiatan,
+        spkRoleId: dto.spkRoleId, // ← from admin selection
       });
     }
 
@@ -196,6 +242,7 @@ export class SawService {
       bulan,
       metode: 'SAW' as const,
       totalAlternatif: results.length,
+      spkKegiatan: spk_kegiatan,
       hasil: results.map((r) => ({
         mitraId: r.mitraId,
         mitraNama: r.mitraNama,

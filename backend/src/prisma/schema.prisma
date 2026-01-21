@@ -101,23 +101,41 @@ model AlokasiMitra {
 // SPK DOCUMENT
 // ==============================
 model SpkDocument {
-  id               Int      @id @default(autoincrement())
-  tahun            Int
-  bulan            Int
-  mitra_id         Int
+  id       Int @id @default(autoincrement())
+  tahun    Int
+  bulan    Int
+  mitra_id Int
 
-  saw_result_id    Int?     // 👈 MAKE THIS OPTIONAL
+  saw_result_id Int?
 
   total_honorarium Decimal
   nomor_spk        String
-  created_at       DateTime @default(now())
 
-  mitra            Mitra    @relation(fields: [mitra_id], references: [id])
+  spk_kegiatan String
+  spk_role     String // ✅ SNAPSHOT TEXT
+  spk_role_id  Int // ✅ MASTER FK
+
+  created_at DateTime @default(now())
+
+  mitra   Mitra   @relation(fields: [mitra_id], references: [id])
+  spkRole SpkRole @relation(fields: [spk_role_id], references: [id])
 
   @@map("spk_document")
   @@schema("spk")
 }
 
+model SpkRole {
+  id         Int      @id @default(autoincrement())
+  kode_role  String   @unique
+  nama_role  String
+  aktif      Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  spkDocuments SpkDocument[] // ✅ OPPOSITE RELATION (REQUIRED)
+
+  @@map("spk_role")
+  @@schema("spk")
+}
 
 //
 // ==============================

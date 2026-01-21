@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SPK</title>
+
+    <style>
+      @page {
+        size: A4;
+        margin: 3cm 3cm 3cm 3cm;
+      }
+
+      body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 12pt;
+        line-height: 1.15;
+        color: #000;
+      }
+
+      p {
+        margin: 0;
+        text-align: justify;
+      }
+
+      /* spacing helpers (Word-like) */
+      .p-after-6 {
+        margin-bottom: 6pt;
+      }
+      .p-after-12 {
+        margin-bottom: 12pt;
+      }
+      .p-after-24 {
+        margin-bottom: 24pt;
+      }
+      .p-before-12 {
+        margin-top: 12pt;
+      }
+      .p-before-24 {
+        margin-top: 24pt;
+      }
+
+      .center {
+        text-align: center;
+      }
+      .bold {
+        font-weight: bold;
+      }
+
+      .dynamic {
+        color: red;
+      }
+
+      /* ===== PIHAK TAB-STYLE LAYOUT ===== */
+      .party-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 6pt;
+      }
+
+      .party-table td {
+        border: none;
+        padding: 0;
+        vertical-align: top;
+        font-size: 12pt;
+        line-height: 1.15;
+      }
+
+      .party-no {
+        width: 1cm;
+      }
+      .party-name {
+        width: 4.5cm;
+      }
+      .party-colon {
+        width: 0.5cm;
+      }
+      .party-desc {
+        width: auto;
+      }
+
+      /* Ayat formatting */
+      .ayat {
+        text-indent: -1cm;
+        margin-left: 1cm;
+        margin-bottom: 6pt;
+      }
+
+      /* Signature */
+      table.signature {
+        width: 100%;
+        margin-top: 48pt;
+        border: none;
+      }
+
+      table.signature td {
+        width: 50%;
+        border: none;
+        vertical-align: top;
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ===== JUDUL ===== -->
+    <p class="center bold p-after-6">PERJANJIAN KERJA</p>
+    <p class="center bold p-after-6">PETUGAS PENGOLAHAN LAPANGAN KEGIATAN</p>
+    <p class="center bold p-after-6">
+      SUSENAS MARET <span class="dynamic">{{tahun_spk}}</span> DAN SERUTI
+      TRIWULAN 1
+    </p>
+    <p class="center bold p-after-12">
+      TAHUN <span class="dynamic">{{tahun_spk}}</span> PADA BADAN PUSAT
+      STATISTIK KOTA MANADO
+    </p>
+
+    <p class="center bold p-after-24">
+      NOMOR: <span class="dynamic">{{nomor_spk}}</span>
+    </p>
+
+    <!-- ===== PEMBUKA ===== -->
+    <p class="p-after-12">
+      Pada hari ini <span class="dynamic">{{hari_spk}}</span>, tanggal
+      <span class="dynamic">{{tanggal_spk}}</span>, bulan
+      <span class="dynamic">{{bulan_spk}}</span>, tahun
+      <span class="dynamic">{{tahun_spk}}</span>, bertempat di Manado, yang
+      bertanda tangan di bawah ini:
+    </p>
+
+    <!-- ===== PIHAK ===== -->
+    <table class="party-table">
+      <tr>
+        <td class="party-no">1.</td>
+        <td class="party-name">
+          <span class="dynamic">{{nama_pejabat_bps}}</span>
+        </td>
+        <td class="party-colon">:</td>
+        <td class="party-desc">
+          {{jabatan_pejabat_bps}} Badan Pusat Statistik Kota Manado,
+          berkedudukan di <span class="dynamic">{{alamat_bps}}</span>, bertindak
+          untuk dan atas nama Badan Pusat Statistik Kota Manado, selanjutnya
+          disebut sebagai <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <table class="party-table">
+      <tr>
+        <td class="party-no">2.</td>
+        <td class="party-name">
+          <span class="dynamic">{{nama_mitra}}</span>
+        </td>
+        <td class="party-colon">:</td>
+        <td class="party-desc">
+          Petugas Pengolahan, berkedudukan di
+          <span class="dynamic">{{alamat_mitra}}</span>, bertindak untuk dan
+          atas nama diri sendiri, selanjutnya disebut
+          <strong>PIHAK KEDUA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <p class="p-after-12">
+      bahwa PIHAK PERTAMA dan PIHAK KEDUA yang secara bersama-sama disebut PARA
+      PIHAK, sepakat untuk mengikatkan diri dalam Perjanjian Kerja Petugas
+      Pengolahan Lapangan Survei SUSENAS MARET
+      <span class="dynamic">{{tahun_spk}}</span> DAN SERUTI TRIWULAN 1 Tahun
+      <span class="dynamic">{{tahun_spk}}</span> pada Badan Pusat Statistik Kota
+      Manado, yang selanjutnya disebut Perjanjian, dengan ketentuan-ketentuan
+      sebagai berikut:
+    </p>
+
+    <!-- ===== PASAL 1 ===== -->
+    <p class="center bold p-before-12 p-after-12">Pasal 1</p>
+    <p class="p-after-12">
+      PIHAK PERTAMA memberikan pekerjaan kepada PIHAK KEDUA dan PIHAK KEDUA
+      menerima pekerjaan dari PIHAK PERTAMA sebagai Petugas Pengolahan Lapangan
+      Survei SUSENAS MARET <span class="dynamic">{{tahun_spk}}</span> DAN SERUTI
+      TRIWULAN 1 Tahun <span class="dynamic">{{tahun_spk}}</span>
+      pada Badan Pusat Statistik Kota Manado, dengan lingkup pekerjaan yang
+      ditetapkan oleh PIHAK PERTAMA.
+    </p>
+
+    <!-- ===== PASAL 2 ===== -->
+    <p class="center bold p-before-12 p-after-12">Pasal 2</p>
+    <p class="p-after-12">
+      Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah kerja
+      dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian, Pedoman
+      SUSENAS MARET <span class="dynamic">{{tahun_spk}}</span> DAN SERUTI
+      TRIWULAN 1 Tahun <span class="dynamic">{{tahun_spk}}</span>, dan
+      ketentuan-ketentuan yang ditetapkan oleh PIHAK PERTAMA.
+    </p>
+
+    <!-- ===== PASAL 3 ===== -->
+    <p class="center bold p-before-12 p-after-12">Pasal 3</p>
+    <p class="p-after-12">
+      Jangka Waktu Perjanjian terhitung sejak tanggal
+      <span class="dynamic">{{tanggal_mulai}}</span> sampai dengan tanggal
+      <span class="dynamic">{{tanggal_selesai}}</span>.
+    </p>
+
+    <!-- ===== PASAL 4 ===== -->
+    <p class="center bold p-before-12 p-after-12">Pasal 4</p>
+    <p class="ayat">
+      (1) PIHAK KEDUA berkewajiban melaksanakan pekerjaan yang diberikan oleh
+      PIHAK PERTAMA sesuai ruang lingkup pekerjaan sebagaimana dimaksud dalam
+      Pasal 2.
+    </p>
+    <p class="ayat">
+      (2) PIHAK KEDUA untuk waktu yang tidak terbatas dan/atau tidak terikat
+      kepada masa berlakunya Perjanjian ini, menjamin untuk memberlakukan
+      sebagai rahasia setiap data/informasi yang diterima atau diperolehnya dari
+      PIHAK PERTAMA.
+    </p>
+
+    <!-- ===== PASAL 5–13 ===== -->
+    <!-- TEMPEL ISI DOCX APA ADANYA -->
+    <!-- gunakan <p class="ayat"> untuk ayat -->
+
+    <!-- ===== PENUTUP ===== -->
+    <p class="p-before-12 p-after-12">
+      Demikian Perjanjian ini dibuat dan ditandatangani oleh PARA PIHAK dalam 2
+      (dua) rangkap asli bermeterai cukup, tanpa paksaan dari PIHAK manapun dan
+      untuk dilaksanakan oleh PARA PIHAK.
+    </p>
+
+    <!-- ===== TANDA TANGAN ===== -->
+    <table class="signature">
+      <tr>
+        <td>PIHAK KEDUA,</td>
+        <td>PIHAK PERTAMA,</td>
+      </tr>
+      <tr>
+        <td style="height: 80px"></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><span class="dynamic">{{nama_mitra}}</span></td>
+        <td><span class="dynamic">{{nama_pejabat_bps}}</span></td>
+      </tr>
+    </table>
+
+    <!-- ===== LAMPIRAN ===== -->
+    <div class="page-break"></div>
+    <!-- LAMPIRAN CONTENT GOES HERE (NEXT STEP) -->
+    <!-- Code injected by live-server -->
+    <script>
+      // <![CDATA[  <-- For SVG support
+      if ('WebSocket' in window) {
+        (function () {
+          function refreshCSS() {
+            var sheets = [].slice.call(document.getElementsByTagName('link'));
+            var head = document.getElementsByTagName('head')[0];
+            for (var i = 0; i < sheets.length; ++i) {
+              var elem = sheets[i];
+              var parent = elem.parentElement || head;
+              parent.removeChild(elem);
+              var rel = elem.rel;
+              if (
+                (elem.href && typeof rel != 'string') ||
+                rel.length == 0 ||
+                rel.toLowerCase() == 'stylesheet'
+              ) {
+                var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                elem.href =
+                  url +
+                  (url.indexOf('?') >= 0 ? '&' : '?') +
+                  '_cacheOverride=' +
+                  new Date().valueOf();
+              }
+              parent.appendChild(elem);
+            }
+          }
+          var protocol =
+            window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+          var address =
+            protocol + window.location.host + window.location.pathname + '/ws';
+          var socket = new WebSocket(address);
+          socket.onmessage = function (msg) {
+            if (msg.data == 'reload') window.location.reload();
+            else if (msg.data == 'refreshcss') refreshCSS();
+          };
+          if (
+            sessionStorage &&
+            !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')
+          ) {
+            console.log('Live reload enabled.');
+            sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+          }
+        })();
+      } else {
+        console.error(
+          'Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.',
+        );
+      }
+      // ]]>
+    </script>
+  </body>
+</html>
