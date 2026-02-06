@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>BAST</title>
+
+    <style>
+      @page {
+        size: A4;
+        margin: 3cm;
+      }
+
+      body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 12pt;
+        line-height: 1.15;
+        color: #000;
+      }
+
+      p {
+        margin-top: 12pt;
+        margin-bottom: 12pt;
+        text-align: justify;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      table.party-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12pt;
+        margin-bottom: 12pt;
+      }
+
+      table.party-table td {
+        vertical-align: top;
+      }
+
+      .party-no {
+        width: 1cm;
+      }
+
+      .party-name {
+        width: 4.5cm;
+      }
+
+      .party-colon {
+        width: 0.5cm;
+      }
+
+      .signature {
+        margin-top: 48pt;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ================= JUDUL ================= -->
+    <p class="center bold">BERITA ACARA SERAH TERIMA PEKERJAAN</p>
+    <p class="center bold">TAHUN {{ tahun }}</p>
+    <p class="center bold">BPS KOTA MANADO</p>
+    <p class="center bold">NOMOR: {{ bastNomor }}</p>
+
+    <!-- ================= PEMBUKA ================= -->
+    <p>
+      {{ tanggalText }}, bertempat di Kantor BPS Kota Manado dengan alamat Jalan
+      Mangga III Kelurahan Bumi Nyiur Kecamatan Wanea Kota Manado, yang bertanda
+      tangan di bawah ini:
+    </p>
+
+    <!-- ================= PIHAK (REUSED FROM SPK) ================= -->
+    <table class="party-table">
+      <tr>
+        <td class="party-no">1.</td>
+        <td class="party-name">{{ nama_pejabat_bps }}</td>
+        <td class="party-colon">:</td>
+        <td>
+          Pejabat Pembuat Komitmen Badan Pusat Statistik Kota Manado,
+          berkedudukan di {{ alamat_bps }}, bertindak untuk dan atas nama Badan
+          Pusat Statistik Kota Manado, selanjutnya disebut sebagai
+          <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <table class="party-table">
+      <tr>
+        <td class="party-no">2.</td>
+        <td class="party-name">{{ nama_mitra }}</td>
+        <td class="party-colon">:</td>
+        <td>
+          {{ spk_role }}, berkedudukan di {{ alamat_mitra }}, bertindak untuk
+          dan atas nama diri sendiri, selanjutnya disebut
+          <strong>PIHAK KEDUA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= ISI ================= -->
+    <p>
+      Berdasarkan Surat Perintah Kerja (SPK)/ Perjanjian Kerja Nomor {{ spkNomor
+      }}, bersama ini PIHAK KEDUA telah menyerahkan hasil pekerjaan sesuai
+      dengan wilayah tugasnya di Kota Manado kepada PIHAK PERTAMA, dengan
+      ketentuan sebagai berikut:
+    </p>
+
+    <p>
+      a. Hasil pekerjaan PIHAK KEDUA telah sesuai dengan jumlah dan spesifikasi
+      teknis/kualitas yang ditetapkan dalam SPK.<br />
+      b. Hasil pekerjaan sebagaimana tersebut pada huruf a telah diperiksa oleh
+      Penanggungjawab Teknis dan diterima kelengkapannya oleh PIHAK PERTAMA.
+    </p>
+
+    <p>
+      Demikian Berita Acara ini dibuat untuk dipergunakan sebagaimana mestinya.
+    </p>
+
+    <!-- ================= TANDA TANGAN ================= -->
+    <div class="signature">
+      <div class="center">
+        PIHAK KEDUA<br />
+        {{ spk_role }}<br /><br /><br />
+        <b>{{ nama_mitra }}</b>
+      </div>
+
+      <div class="center">
+        PIHAK PERTAMA<br />
+        Pejabat Pembuat Komitmen<br />
+        BPS Kota Manado<br /><br /><br />
+        <b>{{ nama_pejabat_bps }}</b><br />
+        NIP. {{ nip_pejabat_bps }}
+      </div>
+    </div>
+  </body>
+</html>

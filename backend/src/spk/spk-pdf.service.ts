@@ -2,8 +2,10 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
 import { SpkService } from './spk.service';
 import { readFileSync } from 'fs';
-import * as Handlebars from 'handlebars';
 import * as path from 'path';
+
+import { renderHtml } from './utils/render-html';
+import { renderLampiranRows } from './utils/render-lampiran';
 
 @Injectable()
 export class SpkPdfService {
@@ -21,27 +23,27 @@ export class SpkPdfService {
       }
 
       /* ===============================
-       * 2️⃣ DEV-SAFE TEMPLATE PATH
+       * 2️⃣ Load HTML template
        * =============================== */
       const templatePath = path.join(
         process.cwd(),
         'src',
         'spk',
-        'spk.template.html',
+        'templates',
+        'spk.html',
       );
-
-      console.log('Using SPK template:', templatePath);
 
       const templateSource = readFileSync(templatePath, 'utf-8');
 
-      const template = Handlebars.compile(templateSource, {
-        strict: false, // prevent crash if optional fields missing
+      const lampiranRowsHtml = renderLampiranRows(data.lampiran_rows);
+
+      const html = renderHtml(templateSource, {
+        ...data,
+        lampiran_table_rows: String(lampiranRowsHtml),
       });
 
-      const html = template(data);
-
       /* ===============================
-       * 3️⃣ Launch Puppeteer (Windows-safe)
+       * 3️⃣ Puppeteer
        * =============================== */
       const browser = await puppeteer.launch({
         headless: true,
@@ -57,9 +59,6 @@ export class SpkPdfService {
       const page = await browser.newPage();
       await page.setContent(html, { waitUntil: 'networkidle0' });
 
-      /* ===============================
-       * 4️⃣ Generate PDF
-       * =============================== */
       const pdfUint8 = await page.pdf({
         format: 'A4',
         printBackground: true,

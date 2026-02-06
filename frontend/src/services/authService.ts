@@ -1,21 +1,36 @@
-import type { AuthUser } from "../auth/auth.types";
+import api from "@/lib/axios";
 
-interface LoginPayload {
-  email: string;
-  password: string;
+import type { AuthUser, Role } from "../auth/auth.types";
+
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    username: string;
+    role: string;
+  };
 }
 
-export async function loginService(payload: LoginPayload): Promise<AuthUser> {
-  // simulate backend delay
-  await new Promise((res) => setTimeout(res, 800));
+export async function loginService(
+  username: string,
+  password: string,
+): Promise<{ token: string; user: AuthUser }> {
+  const res = await api.post<LoginResponse>("/auth/login", {
+    username,
+    password,
+  });
 
-  if (payload.email === "admin@bast.com" && payload.password === "admin") {
-    return { email: payload.email, role: "ADMIN" };
-  }
+  const { token, user } = res.data;
 
-  if (payload.email === "mitra@bast.com" && payload.password === "mitra") {
-    return { email: payload.email, role: "MITRA" };
-  }
+  // 🚫 DO NOT ADD EMAIL HERE
+  const mappedUser: AuthUser = {
+    id: user.id,
+    username: user.username,
+    role: user.role.toUpperCase() as Role, // ✅ FIX
+  };
 
-  throw new Error("Invalid email or password");
+  return {
+    token,
+    user: mappedUser,
+  };
 }

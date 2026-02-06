@@ -1,17 +1,21 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MitraService } from './mitra.service';
 
-@Controller('mitra')
+@Controller('spk/mitra')
 export class MitraController {
   constructor(private readonly mitraService: MitraService) {}
 
-  @Get()
-  findAll() {
-    return this.mitraService.findAll();
+  @UseGuards(JwtAuthGuard)
+  @Get('dashboard')
+  getDashboard(@Req() req) {
+    return this.mitraService.getDashboardSummary(req.user.mitra_id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.mitraService.findOne(Number(id));
+  // ✅ NEW ENDPOINT
+  @UseGuards(JwtAuthGuard)
+  @Get('alokasi')
+  getMyAlokasi(@Req() req) {
+    return this.mitraService.getMyAlokasi(req.user.mitra_id);
   }
 }

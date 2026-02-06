@@ -47,7 +47,8 @@ CREATE TABLE "spk"."alokasi_mitra" (
     "volume" DECIMAL(65,30) NOT NULL,
     "tarif" DECIMAL(65,30) NOT NULL,
     "jumlah" DECIMAL(65,30) NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'DRAFT',
+    "status" TEXT NOT NULL DEFAULT 'PENDING'
+,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "alokasi_mitra_pkey" PRIMARY KEY ("id")

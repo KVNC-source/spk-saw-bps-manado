@@ -1,25 +1,25 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./useAuth";
-import type { Role } from "./auth.types";
+import type { User } from "./AuthContext";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  allowedRoles?: Role[];
+  allowedRoles?: User["role"][];
 }
 
-const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
-  const { user } = useAuth();
+export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>;
-};
-
-export default ProtectedRoute;
+  return <Outlet />;
+}

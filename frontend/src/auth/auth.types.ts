@@ -1,13 +1,19 @@
 export type Role = "ADMIN" | "MITRA";
 
 export interface AuthUser {
-  email: string;
+  id: string; // ✅ FIXED (UUID)
+  username: string;
   role: Role;
+}
+
+export interface AuthPayload {
+  accessToken: string;
+  user: AuthUser;
 }
 
 export interface AuthContextType {
   user: AuthUser | null;
-  login: (user: AuthUser) => void;
+  loading: boolean;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  isAuthenticated: boolean;
 }

@@ -4,62 +4,52 @@ import { CalculateSawDto } from './dto/calculate-saw.dto';
 import { SpkService } from '../spk.service';
 
 /* ─────────────────────────────
- * SAW Criteria Definition
+ * PERIODE LABEL RULE
+ * ───────────────────────────── */
+function getPeriodeLabel(
+  namaKegiatan: string,
+  bulan: number,
+  tahun: number,
+): string {
+  const bulanMap = [
+    'JANUARI',
+    'FEBRUARI',
+    'MARET',
+    'APRIL',
+    'MEI',
+    'JUNI',
+    'JULI',
+    'AGUSTUS',
+    'SEPTEMBER',
+    'OKTOBER',
+    'NOVEMBER',
+    'DESEMBER',
+  ];
+
+  if (namaKegiatan.toUpperCase().includes('SERUTI')) {
+    return `TRIWULAN ${Math.ceil(bulan / 3)}`;
+  }
+
+  return `${bulanMap[bulan - 1]} ${tahun}`;
+}
+
+/* ─────────────────────────────
+ * SAW CRITERIA TYPES
  * ───────────────────────────── */
 type CriterionKey = 'totalVolume' | 'totalNilai' | 'jumlahKegiatan';
 
-interface SawCriterion {
-  key: CriterionKey;
-  label: string;
-  weight: number;
-  type: 'BENEFIT' | 'COST';
-}
-
-const SAW_CRITERIA: SawCriterion[] = [
-  {
-    key: 'totalVolume',
-    label: 'Total Volume Pekerjaan',
-    weight: 0.3,
-    type: 'BENEFIT',
-  },
-  {
-    key: 'totalNilai',
-    label: 'Total Nilai Honor',
-    weight: 0.5,
-    type: 'BENEFIT',
-  },
-  {
-    key: 'jumlahKegiatan',
-    label: 'Jumlah Kegiatan',
-    weight: 0.2,
-    type: 'BENEFIT',
-  },
-];
+/* ─────────────────────────────
+ * SAW CRITERIA CONFIG
+ * ───────────────────────────── */
+const SAW_CRITERIA: readonly { key: CriterionKey; weight: number }[] = [
+  { key: 'totalVolume', weight: 0.3 },
+  { key: 'totalNilai', weight: 0.5 },
+  { key: 'jumlahKegiatan', weight: 0.2 },
+] as const;
 
 /* ─────────────────────────────
- * SPK TITLE FORMATTER
+ * SAW SERVICE
  * ───────────────────────────── */
-type KegiatanTitleInput = {
-  nama: string;
-  periode: string;
-};
-
-function formatSpkKegiatan(kegiatanList: KegiatanTitleInput[]): string {
-  if (!kegiatanList || kegiatanList.length === 0) {
-    throw new Error('SPK kegiatan list cannot be empty');
-  }
-
-  const formatted = kegiatanList.map((k) =>
-    `${k.nama} ${k.periode}`.trim().toUpperCase(),
-  );
-
-  if (formatted.length === 1) return formatted[0];
-  if (formatted.length === 2) return `${formatted[0]} DAN ${formatted[1]}`;
-
-  const last = formatted.pop();
-  return `${formatted.join(', ')}, DAN ${last}`;
-}
-
 @Injectable()
 export class SawService {
   constructor(
@@ -68,66 +58,63 @@ export class SawService {
   ) {}
 
   async calculate(dto: CalculateSawDto) {
-    const { tahun, bulan } = dto;
+    const {
+      tahun,
+      bulan,
+      spkRoleId,
+      kegiatanIds,
+      tanggalMulai,
+      tanggalSelesai,
+    } = dto;
 
-    /* ─────────────────────────────
-     * 0️⃣ Guard: prevent double execution
-     * ───────────────────────────── */
-    const existingSpk = await this.prisma.spkDocument.findFirst({
-      where: { tahun, bulan },
-    });
+    const mulai = new Date(tanggalMulai);
+    const selesai = new Date(tanggalSelesai);
 
-    if (existingSpk) {
+    if (selesai < mulai) {
       throw new BadRequestException(
-        'SPK untuk periode ini sudah pernah dihasilkan',
+        'Tanggal selesai tidak boleh lebih awal dari tanggal mulai',
       );
     }
 
-    /* ─────────────────────────────
-     * 1️⃣ Fetch APPROVED alokasi
-     * ───────────────────────────── */
+    /* 1️⃣ Fetch ONLY requested kegiatan */
     const alokasi = await this.prisma.alokasiMitra.findMany({
       where: {
         tahun,
         bulan,
         status: 'APPROVED',
+        kegiatan_id: { in: kegiatanIds },
       },
       include: {
         mitra: true,
-        kegiatan: true, // IMPORTANT: this relation EXISTS
+        kegiatan: true,
       },
     });
 
-    if (alokasi.length === 0) {
+    if (!alokasi.length) {
       throw new BadRequestException(
-        'Tidak ada data alokasi mitra APPROVED untuk periode ini',
+        'Tidak ada data alokasi mitra APPROVED untuk kegiatan yang dipilih',
       );
     }
 
-    /* ─────────────────────────────
-     * 1️⃣b Build SPK kegiatan title (FIXED)
-     * ───────────────────────────── */
-    const kegiatanMap = new Map<number, string>();
+    /* 2️⃣ Build SPK title */
+    const kegiatanForTitle = Array.from(
+      new Map(
+        alokasi.map((a) => [
+          a.kegiatan_id,
+          {
+            nama: a.kegiatan.nama_kegiatan,
+            periode: getPeriodeLabel(a.kegiatan.nama_kegiatan, bulan, tahun),
+          },
+        ]),
+      ).values(),
+    );
 
-    for (const row of alokasi) {
-      if (!kegiatanMap.has(row.kegiatan_id)) {
-        kegiatanMap.set(row.kegiatan_id, row.kegiatan.nama_kegiatan);
-      }
-    }
+    const spkKegiatan = kegiatanForTitle
+      .map((k) => `${k.nama} ${k.periode}`.toUpperCase())
+      .join(' DAN ');
 
-    const kegiatanForTitle: KegiatanTitleInput[] = Array.from(
-      kegiatanMap.values(),
-    ).map((nama) => ({
-      nama,
-      periode: `${bulan} ${tahun}`, // PERIODE SESUAI DOCX
-    }));
-
-    const spk_kegiatan = formatSpkKegiatan(kegiatanForTitle);
-
-    /* ─────────────────────────────
-     * 2️⃣ Aggregate per mitra
-     * ───────────────────────────── */
-    const aggregated = new Map<
+    /* 3️⃣ Aggregate per mitra */
+    const map = new Map<
       number,
       {
         mitraId: number;
@@ -138,26 +125,24 @@ export class SawService {
       }
     >();
 
-    for (const row of alokasi) {
-      const mitraId = row.mitra_id;
-
-      if (!aggregated.has(mitraId)) {
-        aggregated.set(mitraId, {
-          mitraId,
-          mitraNama: row.mitra.nama_mitra,
+    for (const a of alokasi) {
+      if (!map.has(a.mitra_id)) {
+        map.set(a.mitra_id, {
+          mitraId: a.mitra_id,
+          mitraNama: a.mitra.nama_mitra,
           totalVolume: 0,
           totalNilai: 0,
           kegiatanSet: new Set<number>(),
         });
       }
 
-      const data = aggregated.get(mitraId)!;
-      data.totalVolume += Number(row.volume);
-      data.totalNilai += Number(row.jumlah);
-      data.kegiatanSet.add(row.kegiatan_id);
+      const m = map.get(a.mitra_id)!;
+      m.totalVolume += Number(a.volume);
+      m.totalNilai += Number(a.jumlah);
+      m.kegiatanSet.add(a.kegiatan_id);
     }
 
-    const alternatives = Array.from(aggregated.values()).map((m) => ({
+    const alternatives = Array.from(map.values()).map((m) => ({
       mitraId: m.mitraId,
       mitraNama: m.mitraNama,
       totalVolume: m.totalVolume,
@@ -165,91 +150,71 @@ export class SawService {
       jumlahKegiatan: m.kegiatanSet.size,
     }));
 
-    /* ─────────────────────────────
-     * 3️⃣ Max value per criterion
-     * ───────────────────────────── */
-    const maxValues: Record<CriterionKey, number> = {
+    /* 4️⃣ SAW normalization & ranking */
+    const max: Record<CriterionKey, number> = {
       totalVolume: Math.max(...alternatives.map((a) => a.totalVolume)),
       totalNilai: Math.max(...alternatives.map((a) => a.totalNilai)),
       jumlahKegiatan: Math.max(...alternatives.map((a) => a.jumlahKegiatan)),
     };
 
-    /* ─────────────────────────────
-     * 4️⃣ SAW Calculation
-     * ───────────────────────────── */
-    const results = alternatives.map((alt) => {
-      let score = 0;
-      const detail: Record<
-        string,
-        {
-          nilaiAsli: number;
-          normalized: number;
-          bobot: number;
-          kontribusi: number;
+    const ranked = alternatives
+      .map((alt) => {
+        let score = 0;
+        const detail: Record<
+          CriterionKey,
+          {
+            nilaiAsli: number;
+            normalized: number;
+            bobot: number;
+            kontribusi: number;
+          }
+        > = {} as any;
+
+        for (const c of SAW_CRITERIA) {
+          const normalized = max[c.key] ? alt[c.key] / max[c.key] : 0;
+          const kontribusi = normalized * c.weight;
+
+          score += kontribusi;
+
+          detail[c.key] = {
+            nilaiAsli: alt[c.key],
+            normalized: Number(normalized.toFixed(4)),
+            bobot: c.weight,
+            kontribusi: Number(kontribusi.toFixed(4)),
+          };
         }
-      > = {};
 
-      for (const c of SAW_CRITERIA) {
-        const nilaiAsli = alt[c.key];
-        const max = maxValues[c.key];
-        const normalized = max === 0 ? 0 : nilaiAsli / max;
-        const kontribusi = normalized * c.weight;
-
-        score += kontribusi;
-
-        detail[c.key] = {
-          nilaiAsli,
-          normalized: Number(normalized.toFixed(4)),
-          bobot: c.weight,
-          kontribusi: Number(kontribusi.toFixed(4)),
+        return {
+          ...alt,
+          nilaiPreferensi: Number(score.toFixed(4)),
+          detail,
         };
-      }
+      })
+      .sort((a, b) => b.nilaiPreferensi - a.nilaiPreferensi)
+      .map((r, i) => ({ ...r, peringkat: i + 1 }));
 
-      return {
-        mitraId: alt.mitraId,
-        mitraNama: alt.mitraNama,
-        nilaiPreferensi: Number(score.toFixed(4)),
-        detail,
-      };
-    });
-
-    /* ─────────────────────────────
-     * 5️⃣ Ranking
-     * ───────────────────────────── */
-    results.sort((a, b) => b.nilaiPreferensi - a.nilaiPreferensi);
-    results.forEach((r, index) => {
-      (r as any).peringkat = index + 1;
-    });
-
-    /* ─────────────────────────────
-     * 6️⃣ Generate SPK
-     * ───────────────────────────── */
-    for (const r of results) {
+    /* 5️⃣ Generate SPK snapshot (scope locked via kegiatanIds) */
+    for (const r of ranked) {
       await this.spkService.createSpk({
         tahun,
         bulan,
         mitraId: r.mitraId,
-        spkKegiatan: spk_kegiatan,
-        spkRoleId: dto.spkRoleId, // ← from admin selection
+        spkKegiatan,
+        spkRoleId,
+        tanggalMulai: mulai,
+        tanggalSelesai: selesai,
+        kegiatanIds, // ✅ snapshot scope (LEGAL)
       });
     }
 
-    /* ─────────────────────────────
-     * 7️⃣ Final Response
-     * ───────────────────────────── */
     return {
       tahun,
       bulan,
       metode: 'SAW' as const,
-      totalAlternatif: results.length,
-      spkKegiatan: spk_kegiatan,
-      hasil: results.map((r) => ({
-        mitraId: r.mitraId,
-        mitraNama: r.mitraNama,
-        nilaiPreferensi: r.nilaiPreferensi,
-        peringkat: (r as any).peringkat,
-        detail: r.detail,
-      })),
+      kegiatanDigunakan: kegiatanForTitle.map((k) => k.nama),
+      totalAlternatif: ranked.length,
+      spkKegiatan,
+      hasil: ranked,
     };
   }
 }

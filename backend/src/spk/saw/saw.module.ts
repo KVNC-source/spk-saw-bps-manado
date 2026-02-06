@@ -7,7 +7,7 @@ import { SpkModule } from '../spk.module';
 @Module({
   imports: [
     PrismaModule,
-    SpkModule, // 👈 THIS IS THE FIX
+    SpkModule, // ✅ REQUIRED so SawService uses the REAL SpkService
   ],
   providers: [SawService],
   controllers: [SawController],

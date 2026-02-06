@@ -1,0 +1,503 @@
+/* =========================================================
+   BPS / BUMN ADMIN SYSTEM
+   Glassmorphism + Soft Neumorphism
+   ========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap");
+
+/* ================================
+   RESET & BASE
+================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  background: linear-gradient(180deg, #f4f7fb 0%, #e8eef6 100%);
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ================================
+   DESIGN TOKENS
+================================ */
+
+:root {
+  --gov-blue: #0f4c81;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.45);
+  --glass-blur: blur(14px);
+
+  --neo-shadow-soft:
+    8px 8px 20px rgba(15, 23, 42, 0.08), -8px -8px 20px rgba(255, 255, 255, 0.9);
+
+  --text-main: #1f2937;
+  --text-muted: #475569;
+
+  --success-bg: rgba(34, 197, 94, 0.15);
+  --success-text: #166534;
+
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --warning-text: #92400e;
+
+  --muted-bg: rgba(107, 114, 128, 0.15);
+  --muted-text: #374151;
+}
+
+/* =========================================================
+   NAVBAR
+========================================================= */
+
+.admin-navbar {
+  height: 64px;
+  width: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: var(--neo-shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+}
+
+.admin-navbar__brand strong {
+  font-size: 14px;
+  color: var(--gov-blue);
+}
+
+.admin-navbar__brand span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.admin-navbar__nav {
+  display: flex;
+  gap: 24px;
+}
+
+.admin-navbar__nav a {
+  text-decoration: none;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.admin-navbar__nav a.active {
+  color: var(--gov-blue);
+  font-weight: 600;
+}
+
+/* =========================================================
+   PAGE LAYOUT (FULL WIDTH)
+========================================================= */
+
+.page-container {
+  width: 100%;
+  min-height: calc(100vh - 64px);
+  padding: 32px 40px;
+}
+
+.page-container h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.page-container p {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.dashboard-container {
+  padding: 32px 40px;
+}
+
+.dashboard-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gov-blue);
+}
+
+.dashboard-subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* KPI CARDS */
+
+.dashboard-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 28px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: var(--neo-shadow-soft);
+}
+
+.kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.kpi-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gov-blue);
+}
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.table-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--neo-shadow-soft);
+}
+
+.gov-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gov-table thead {
+  background: var(--gov-blue);
+}
+
+.gov-table th {
+  padding: 12px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  text-align: left;
+}
+
+.gov-table td {
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text-main);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.gov-table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.gov-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.gov-table td[colspan] {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 90px;
+}
+
+.badge-draft {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.badge-approved {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.badge-used {
+  background: var(--muted-bg);
+  color: var(--muted-text);
+}
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.mt-32 {
+  margin-top: 32px;
+}
+
+/* =========================================================
+   FORM / INPUT ALOKASI
+========================================================= */
+
+.form-card {
+  width: 100%;
+  max-width: none; /* 🔥 FULL WIDTH FIX */
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--neo-shadow-soft);
+}
+
+.form-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gov-blue);
+  margin-bottom: 12px;
+}
+
+/* Label */
+.form-card label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+
+/* Input / Select */
+.form-card input,
+.form-card select {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  font-size: 14px;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  outline: none;
+  transition:
+    border 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-card input:focus,
+.form-card select:focus {
+  border-color: var(--gov-blue);
+  box-shadow: 0 0 0 3px rgba(15, 76, 129, 0.15);
+}
+
+/* Button */
+.form-card button {
+  width: 100%;
+  height: 44px;
+  margin-top: 18px;
+  background: var(--gov-blue);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: var(--neo-shadow-soft);
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.form-card button:hover {
+  background: #0d3f6b;
+  transform: translateY(-1px);
+}
+
+.form-card button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Preview */
+.kegiatan-preview {
+  margin-top: 14px;
+  padding: 12px;
+  background: rgba(15, 76, 129, 0.05);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.total-preview {
+  margin-top: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Actions */
+.form-actions {
+  margin-top: 32px;
+  width: 100%;
+  max-width: none;
+}
+
+/* Info text */
+.info-text {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.info-text.success {
+  color: var(--success-text);
+}
+
+.info-text.error {
+  color: #b91c1c;
+}
+
+/* =========================================================
+   GRID LAYOUT
+========================================================= */
+
+.alokasi-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  width: 100%;
+  align-items: start;
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1024px) {
+  .alokasi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-container,
+  .page-container {
+    padding: 20px;
+  }
+
+  .form-card {
+    padding: 20px;
+  }
+
+  .gov-table th,
+  .gov-table td {
+    padding: 10px;
+    font-size: 13px;
+  }
+}
+
+/* =========================================================
+   SPK APPROVAL BUBBLES
+========================================================= */
+
+.spk-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  width: 100%;
+}
+
+.spk-bubble {
+  width: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: var(--neo-shadow-soft);
+}
+
+.spk-bubble__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.spk-bubble__title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.spk-bubble__meta {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.spk-bubble__amount {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.spk-bubble {
+  will-change: transform;
+}
+
+.spk-bubble--clickable {
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.spk-bubble--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    12px 12px 24px rgba(15, 23, 42, 0.12),
+    -12px -12px 24px rgba(255, 255, 255, 0.9);
+}

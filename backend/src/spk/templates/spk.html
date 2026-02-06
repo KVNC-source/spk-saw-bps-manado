@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>SPK</title>
+
+    <style>
+      @page {
+        size: A4;
+        margin: 3cm;
+      }
+
+      body {
+        font-family: 'Bookman Old Style', 'Times New Roman', serif;
+        font-size: 12pt;
+        line-height: 1.15;
+        color: #000;
+      }
+
+      p {
+        margin: 12pt 0;
+        text-align: justify;
+      }
+
+      .center {
+        text-align: center;
+      }
+
+      .bold {
+        font-weight: bold;
+      }
+
+      .pasal-title {
+        text-align: center;
+        font-weight: bold;
+        margin: 12pt 0;
+        page-break-after: avoid;
+      }
+
+      .page-break {
+        page-break-before: always;
+      }
+
+      /* ===============================
+         PIHAK TABLE
+      =============================== */
+
+      table.party-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 12pt 0;
+      }
+
+      .party-no {
+        width: 1cm;
+        vertical-align: top;
+      }
+
+      .party-name {
+        width: 5cm;
+        vertical-align: top;
+      }
+
+      .party-colon {
+        width: 0.5cm;
+        vertical-align: top;
+      }
+
+      /* ===============================
+         PASAL / AYAT TABLE (WORD STYLE)
+      =============================== */
+
+      table.pasal-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12pt;
+      }
+
+      td.pasal-no {
+        width: 1.3cm;
+        vertical-align: top;
+        font-weight: bold;
+        padding-right: 6pt;
+      }
+
+      td.pasal-text {
+        vertical-align: top;
+        text-align: justify;
+      }
+
+      /* ===============================
+         LAMPIRAN TABLE
+      =============================== */
+
+      table.lampiran {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11pt;
+      }
+
+      table.lampiran th,
+      table.lampiran td {
+        border: 1px solid #000;
+        padding: 4pt;
+        vertical-align: middle;
+      }
+
+      table.lampiran th {
+        text-align: center;
+        font-weight: bold;
+      }
+
+      /* ===============================
+   TTD (SIGNATURE) – PAGE SAFE
+=============================== */
+      .ttd-block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        margin-top: 48pt;
+      }
+
+      .ttd-block table {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      /* ===============================
+   PAGE BREAK
+=============================== */
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+
+      /* ===============================
+   LAMPIRAN – MUST STAY TOGETHER
+=============================== */
+      .lampiran-block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .lampiran {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11pt;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+
+      .lampiran th,
+      .lampiran td {
+        border: 1px solid #000;
+        padding: 4pt;
+        vertical-align: top;
+      }
+
+      /* Dynamic DB content */
+      .dynamic {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- ================= JUDUL ================= -->
+    <p class="center bold">PERJANJIAN KERJA</p>
+    <p class="center bold">PETUGAS PENGOLAHAN LAPANGAN KEGIATAN</p>
+    <p class="center bold">{{spk_kegiatan}}</p>
+    <p class="center bold">
+      TAHUN {{tahun_spk}} PADA BADAN PUSAT STATISTIK KOTA MANADO
+    </p>
+    <p class="center bold">NOMOR: {{nomor_spk}}</p>
+
+    <!-- ================= PEMBUKA ================= -->
+    <p>
+      Pada hari ini {{hari_spk}}, tanggal {{tanggal_spk}}, bulan {{bulan_spk}},
+      tahun {{tahun_spk}}, bertempat di Manado, yang bertanda tangan di bawah
+      ini:
+    </p>
+
+    <!-- ================= PIHAK ================= -->
+    <table class="party-table">
+      <tr>
+        <td class="party-no">1.</td>
+        <td class="party-name">{{nama_pejabat_bps}}</td>
+        <td class="party-colon">:</td>
+        <td>
+          Pejabat Pembuat Komitmen Badan Pusat Statistik Kota Manado,
+          berkedudukan di {{alamat_bps}}, selanjutnya disebut
+          <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+      <tr>
+        <td class="party-no">2.</td>
+        <td class="party-name">{{nama_mitra}}</td>
+        <td class="party-colon">:</td>
+        <td>
+          Petugas Pengolahan Lapangan, berkedudukan di {{alamat_mitra}},
+          selanjutnya disebut <strong>PIHAK KEDUA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= KESEPAKATAN ================= -->
+    <p>
+      bahwa <strong>PIHAK PERTAMA</strong> dan <strong>PIHAK KEDUA</strong> yang
+      secara bersama-sama disebut <strong>PARA PIHAK</strong>, sepakat untuk
+      mengikatkan diri dalam Perjanjian ini dengan ketentuan-ketentuan sebagai
+      berikut:
+    </p>
+
+    <!-- ================= PASAL 1 ================= -->
+    <!-- ================= PASAL 1 ================= -->
+    <p class="pasal-title">Pasal 1</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK PERTAMA</strong> memberikan pekerjaan kepada
+          <strong>PIHAK KEDUA</strong> dan <strong>PIHAK KEDUA</strong> menerima
+          pekerjaan dari <strong>PIHAK PERTAMA</strong> sebagai Petugas
+          Pengolahan Lapangan Kegiatan {{spk_kegiatan}} Tahun {{tahun_spk}} pada
+          Badan Pusat Statistik Kota Manado, dengan lingkup pekerjaan yang
+          ditetapkan oleh <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 2 ================= -->
+    <p class="pasal-title">Pasal 2</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Ruang lingkup pekerjaan dalam Perjanjian ini mengacu pada wilayah
+          kerja dan beban kerja sebagaimana tertuang dalam lampiran Perjanjian,
+          Pedoman {{spk_kegiatan}} Tahun {{tahun_spk}}, serta
+          ketentuan-ketentuan yang ditetapkan oleh
+          <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 3 ================= -->
+    <p class="pasal-title">Pasal 3</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Jangka Waktu Perjanjian terhitung sejak tanggal {{tanggal_mulai}}
+          sampai dengan tanggal {{tanggal_selesai}}.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 4 ================= -->
+    <p class="pasal-title">Pasal 4</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK KEDUA</strong> berkewajiban melaksanakan pekerjaan yang
+          diberikan oleh <strong>PIHAK PERTAMA</strong> sesuai ruang lingkup
+          pekerjaan sebagaimana dimaksud dalam Pasal 2.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          <strong>PIHAK KEDUA</strong> untuk waktu yang tidak terbatas dan/atau
+          tidak terikat kepada masa berlakunya Perjanjian ini, menjamin untuk
+          memberlakukan sebagai rahasia setiap data dan/atau informasi yang
+          diterima atau diperolehnya dari <strong>PIHAK PERTAMA</strong>, serta
+          menjamin bahwa keterangan tersebut hanya dipergunakan untuk
+          melaksanakan tujuan Perjanjian ini.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 5 ================= -->
+    <p class="pasal-title">Pasal 5</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK KEDUA</strong> apabila melakukan peminjaman
+          dokumen/data/aset milik <strong>PIHAK PERTAMA</strong>, wajib menjaga
+          dan menggunakan sesuai dengan tujuan Perjanjian serta mengembalikan
+          dalam keadaan utuh sama dengan saat peminjaman, dan dilarang
+          menggandakan, menyalin, menunjukkan, dan/atau mendokumentasikan dalam
+          bentuk foto atau bentuk apa pun untuk kepentingan pribadi maupun
+          kepentingan lain yang tidak berkaitan dengan tujuan Perjanjian ini.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          <strong>PIHAK KEDUA</strong> dilarang memberikan dokumen/data/aset
+          milik <strong>PIHAK PERTAMA</strong> yang berada dalam penguasaannya,
+          baik secara langsung maupun tidak langsung, termasuk memberikan akses
+          kepada pihak lain untuk menggunakan, menyalin, memfotokopi,
+          menunjukkan, dan/atau mendokumentasikan dalam bentuk foto atau bentuk
+          apa pun sehingga informasi diketahui oleh pihak lain untuk tujuan apa
+          pun.
+        </td>
+      </tr>
+    </table>
+    <!-- ================= PASAL 6 ================= -->
+    <p class="pasal-title">Pasal 6</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK KEDUA</strong> berhak untuk mendapatkan honorarium
+          petugas dari <strong>PIHAK PERTAMA</strong> sebesar
+          <strong>Rp {{total_honorarium}}</strong> untuk pekerjaan sebagaimana
+          dimaksud dalam Pasal 2, termasuk biaya pajak, bea materai, dan jasa
+          pelayanan keuangan.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Honorarium sebagaimana dimaksud pada ayat (1) dibayarkan oleh
+          <strong>PIHAK PERTAMA</strong> kepada
+          <strong>PIHAK KEDUA</strong> setelah menyelesaikan seluruh pekerjaan
+          yang ditargetkan sebagaimana tercantum dalam Lampiran Perjanjian,
+          dituangkan dalam Berita Acara Serah Terima Hasil Pekerjaan, dan
+          diserahkan paling lambat tanggal tiga puluh.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 7 ================= -->
+    <p class="pasal-title">Pasal 7</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Pembayaran honorarium sebagaimana dimaksud dalam Pasal 6 dilakukan
+          setelah <strong>PIHAK KEDUA</strong> menyelesaikan dan menyerahkan
+          seluruh hasil pekerjaan sebagaimana dimaksud dalam Pasal 2 kepada
+          <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Pembayaran sebagaimana dimaksud pada ayat (1) dilakukan oleh
+          <strong>PIHAK PERTAMA</strong> kepada
+          <strong>PIHAK KEDUA</strong> sesuai dengan ketentuan peraturan
+          perundang-undangan.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 8 ================= -->
+    <p class="pasal-title">Pasal 8</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK PERTAMA</strong> secara berjenjang melakukan pemeriksaan
+          dan evaluasi atas target penyelesaian dan kualitas hasil pekerjaan
+          yang dilaksanakan oleh <strong>PIHAK KEDUA</strong> secara berkala
+          setiap minggu.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Hasil pemeriksaan dan evaluasi sebagaimana dimaksud pada ayat (1)
+          menjadi dasar pembayaran honorarium
+          <strong>PIHAK KEDUA</strong> oleh
+          <strong>PIHAK PERTAMA</strong> sebagaimana dimaksud dalam Pasal 6 ayat
+          (2), yang dituangkan dalam Berita Acara Serah Terima Hasil Pekerjaan
+          yang ditandatangani oleh <strong>PARA PIHAK</strong>.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 9 ================= -->
+    <p class="pasal-title">Pasal 9</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          <strong>PIHAK PERTAMA</strong> dapat memutuskan Perjanjian ini secara
+          sepihak sewaktu-waktu dalam hal <strong>PIHAK KEDUA</strong> tidak
+          dapat melaksanakan kewajibannya sebagaimana dimaksud dalam Pasal 4
+          dengan menerbitkan Surat Pemutusan Perjanjian Kerja.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 10 ================= -->
+    <p class="pasal-title">Pasal 10</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Apabila <strong>PIHAK KEDUA</strong> mengundurkan diri pada saat atau
+          setelah pelaksanaan pekerjaan lapangan dengan tidak menyelesaikan
+          pekerjaan yang menjadi tanggung jawabnya, maka diberikan sanksi tidak
+          diberikan honorarium atas pekerjaan yang telah dilaksanakan.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Dikecualikan tidak membayar ganti rugi sebagaimana dimaksud pada ayat
+          (1) kepada <strong>PIHAK PERTAMA</strong>, apabila
+          <strong>PIHAK KEDUA</strong> meninggal dunia, mengundurkan diri karena
+          sakit dengan keterangan rawat inap, kecelakaan dengan keterangan
+          kepolisian, dan/atau telah diberikan Surat Pemutusan Perjanjian Kerja
+          dari <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(3)</td>
+        <td class="pasal-text">
+          Dalam hal terjadi peristiwa sebagaimana dimaksud pada ayat (2),
+          <strong>PIHAK PERTAMA</strong> membayarkan honorarium kepada
+          <strong>PIHAK KEDUA</strong> secara proporsional sesuai pekerjaan yang
+          telah dilaksanakan.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 11 ================= -->
+    <p class="pasal-title">Pasal 11</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Apabila terjadi Keadaan Kahar, yang meliputi bencana alam dan bencana
+          sosial, <strong>PIHAK KEDUA</strong> memberitahukan kepada
+          <strong>PIHAK PERTAMA</strong> dalam waktu paling lambat 7 (tujuh)
+          hari sejak mengetahui kejadian Keadaan Kahar dengan menyertakan bukti.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Pada saat terjadi Keadaan Kahar, pelaksanaan pekerjaan oleh
+          <strong>PIHAK KEDUA</strong> dihentikan sementara dan dilanjutkan
+          kembali setelah Keadaan Kahar berakhir, namun apabila akibat Keadaan
+          Kahar tidak memungkinkan dilanjutkan atau diselesaikannya pelaksanaan
+          pekerjaan, <strong>PIHAK KEDUA</strong> berhak menerima honorarium
+          secara proporsional sesuai pekerjaan yang telah dilaksanakan.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 12 ================= -->
+    <p class="pasal-title">Pasal 12</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Segala sesuatu yang belum atau tidak cukup diatur dalam Perjanjian
+          ini, dituangkan dalam perjanjian tambahan atau addendum dan merupakan
+          bagian tidak terpisahkan dari Perjanjian ini.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PASAL 13 ================= -->
+    <p class="pasal-title">Pasal 13</p>
+    <table class="pasal-table">
+      <tr>
+        <td class="pasal-no">(1)</td>
+        <td class="pasal-text">
+          Segala perselisihan atau perbedaan pendapat yang timbul sebagai akibat
+          adanya Perjanjian ini akan diselesaikan secara musyawarah untuk
+          mufakat.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(2)</td>
+        <td class="pasal-text">
+          Apabila perselisihan tidak dapat diselesaikan sebagaimana dimaksud
+          pada ayat (1), <strong>PARA PIHAK</strong> sepakat menyelesaikan
+          perselisihan dengan memilih kedudukan atau domisili hukum di Panitera
+          Pengadilan Negeri Kota Manado.
+        </td>
+      </tr>
+      <tr>
+        <td class="pasal-no">(3)</td>
+        <td class="pasal-text">
+          Selama perselisihan dalam proses penyelesaian pengadilan,
+          <strong>PIHAK PERTAMA</strong> dan <strong>PIHAK KEDUA</strong> wajib
+          tetap melaksanakan kewajiban masing-masing berdasarkan Perjanjian ini.
+        </td>
+      </tr>
+    </table>
+
+    <!-- ================= PENUTUP ================= -->
+    <p>
+      Demikian Perjanjian ini dibuat dan ditandatangani oleh
+      <strong>PARA PIHAK</strong> dalam dua rangkap asli bermeterai cukup.
+    </p>
+
+    <!-- ================= TANDA TANGAN ================= -->
+    <div class="ttd-block">
+      <table style="width: 100%; margin-top: 48pt">
+        <tr>
+          <td width="50%" class="center bold">PIHAK KEDUA</td>
+          <td width="50%" class="center bold">PIHAK PERTAMA</td>
+        </tr>
+        <tr>
+          <td style="height: 80pt"></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="center">{{nama_mitra}}</td>
+          <td class="center">{{nama_pejabat_bps}}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- ================= LAMPIRAN ================= -->
+    <!-- FORCE NEW PAGE FOR LAMPIRAN -->
+    <div class="page-break"></div>
+
+    <div class="lampiran-block">
+      <!-- LAMPIRAN HEADER -->
+      <p class="center bold">LAMPIRAN</p>
+
+      <p class="center">
+        PERJANJIAN KERJA PETUGAS PENDATAAN LAPANGAN KEGIATAN<br />
+        <span class="dynamic">{{spk_kegiatan}}</span><br />
+        TAHUN <span class="dynamic">{{tahun_spk}}</span><br />
+        PADA BADAN PUSAT STATISTIK KOTA MANADO
+      </p>
+
+      <p class="center">
+        NOMOR:
+        <span class="dynamic">{{nomor_spk}}</span>
+      </p>
+
+      <!-- SPACING -->
+      <div style="height: 18pt"></div>
+
+      <!-- TABLE TITLE -->
+      <p class="center bold">
+        DAFTAR URAIAN TUGAS, TARGET PEKERJAAN, JANGKA WAKTU, NILAI PERJANJIAN
+        DAN BEBAN ANGGARAN
+      </p>
+
+      <!-- TABLE -->
+      <table class="lampiran">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Uraian Tugas</th>
+            <th>Jangka Waktu</th>
+            <th>Volume</th>
+            <th>Satuan</th>
+            <th>Harga Satuan</th>
+            <th>Nilai</th>
+            <th>Beban Anggaran</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{{lampiran_table_rows}}}
+
+          <tr>
+            <td colspan="6"><strong>Terbilang</strong></td>
+            <td colspan="2">
+              <em class="dynamic">{{terbilang}}</em>
+            </td>
+          </tr>
+
+          <tr>
+            <td colspan="6" style="text-align: right">
+              <strong>Jumlah</strong>
+            </td>
+            <td colspan="2">
+              <strong class="dynamic">Rp {{total_honorarium}}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

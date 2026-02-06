@@ -1,4 +1,11 @@
-import { IsInt, Min, Max, IsPositive } from 'class-validator';
+import {
+  IsInt,
+  Min,
+  Max,
+  IsArray,
+  ArrayNotEmpty,
+  IsDateString,
+} from 'class-validator';
 
 export class CalculateSawDto {
   @IsInt()
@@ -9,8 +16,18 @@ export class CalculateSawDto {
   @Max(12)
   bulan: number;
 
-  // ✅ MASTER ROLE (selected by admin)
   @IsInt()
-  @IsPositive()
   spkRoleId: number;
+
+  // ✅ kegiatan scope (explicit)
+  @IsArray()
+  @ArrayNotEmpty()
+  kegiatanIds: number[];
+
+  // ✅ Pasal 3 — DETERMINED, NOT DERIVED
+  @IsDateString()
+  tanggalMulai: string;
+
+  @IsDateString()
+  tanggalSelesai: string;
 }

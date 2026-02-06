@@ -1,5 +1,8 @@
-import AppRouter from "./router";
+import AppRoutes from "./router/AppRoutes";
+import useIdleLogout from "./hooks/useIdleLogout";
 
 export default function App() {
-  return <AppRouter />;
+  useIdleLogout(); // 👈 THIS IS THE KEY LINE
+
+  return <AppRoutes />;
 }

@@ -9,8 +9,12 @@ export default function RootRedirect() {
   }
 
   if (user.role === "ADMIN") {
-    return <Navigate to="/dashboard/admin" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
-  return <Navigate to="/dashboard/mitra" replace />;
+  if (user.role === "MITRA") {
+    return <Navigate to="/mitra/dashboard" replace />;
+  }
+
+  return <Navigate to="/login" replace />;
 }
