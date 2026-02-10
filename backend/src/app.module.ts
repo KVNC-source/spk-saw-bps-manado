@@ -10,6 +10,7 @@ import { MitraModule } from './mitra/mitra.module';
 import { SpkModule } from './spk/spk.module';
 import { BastModule } from './bast/bast.module';
 import { KegiatanModule } from './kegiatan/kegiatan.module';
+import { MataAnggaranModule } from './mata-anggaran/mata-anggaran.module';
 
 @Module({
   imports: [
@@ -17,9 +18,10 @@ import { KegiatanModule } from './kegiatan/kegiatan.module';
     PrismaModule,
     AuthModule,
     MitraModule,
-    SpkModule, // ✅ SPK domain (includes SAW internally)
+    SpkModule,
     BastModule,
     KegiatanModule,
+    MataAnggaranModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,5 +1,9 @@
 import { Routes, Route } from "react-router-dom";
 
+// mata anggaran admin
+import MataAnggaranList from "../pages/admin/MataAnggaranList";
+import MataAnggaranForm from "../pages/admin/MataAnggaranForm";
+
 import RootRedirect from "../pages/RootRedirect";
 import ProtectedRoute from "../auth/ProtectedRoute";
 
@@ -10,9 +14,16 @@ import MitraLayout from "../components/mitralayout/MitraLayout";
 // admin pages
 import Dashboard from "../pages/admin/Dashboard";
 import SawPage from "../pages/admin/SawPage";
-import MitraList from "../pages/admin/MitraList";
 
-// 🔽 SPK pages
+// mitra admin
+import MitraList from "../pages/admin/MitraList";
+import MitraForm from "../pages/admin/MitraForm";
+
+// kegiatan admin
+import KegiatanList from "../pages/admin/KegiatanList";
+import KegiatanForm from "../pages/admin/KegiatanForm";
+
+// SPK pages
 import GenerateSPKPage from "../pages/admin/GenerateSpkPage";
 import SpkApprovalPage from "../pages/admin/spk-approval/SpkApprovalPage";
 import SpkDetailPage from "../pages/admin/detail/SpkDetailPage";
@@ -34,21 +45,34 @@ export default function AppRoutes() {
       {/* ================= ADMIN ================= */}
       <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
         <Route path="/admin/dashboard" element={<AdminLayout />}>
+          {/* Dashboard */}
           <Route index element={<Dashboard />} />
 
-          {/* MASTER DATA */}
-          <Route path="mitra" element={<MitraList />} />
+          {/* ================= MASTER DATA ================= */}
+          <Route path="mata-anggaran" element={<MataAnggaranList />} />
+          <Route path="mata-anggaran/create" element={<MataAnggaranForm />} />
+          <Route path="mata-anggaran/:id/edit" element={<MataAnggaranForm />} />
 
-          {/* SAW */}
+          {/* MITRA */}
+          <Route path="mitra" element={<MitraList />} />
+          <Route path="mitra/create" element={<MitraForm />} />
+          <Route path="mitra/:id/edit" element={<MitraForm />} />
+
+          {/* KEGIATAN */}
+          <Route path="kegiatan" element={<KegiatanList />} />
+          <Route path="kegiatan/create" element={<KegiatanForm />} />
+          <Route path="kegiatan/:id/edit" element={<KegiatanForm />} />
+
+          {/* ================= SAW ================= */}
           <Route path="saw" element={<SawPage />} />
 
-          {/* SPK */}
+          {/* ================= SPK ================= */}
           <Route path="spk">
-            {/* STATIC ROUTES FIRST */}
+            {/* static routes first */}
             <Route path="generate" element={<GenerateSPKPage />} />
             <Route path="approval" element={<SpkApprovalPage />} />
 
-            {/* DYNAMIC ROUTE LAST */}
+            {/* dynamic route last */}
             <Route path=":id" element={<SpkDetailPage />} />
           </Route>
         </Route>

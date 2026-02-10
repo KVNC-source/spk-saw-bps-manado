@@ -37,12 +37,22 @@ export class AuthService {
     }
 
     return {
-      accessToken: this.jwtService.sign({
+      token: this.jwtService.sign(
+        {
+          sub: user.id,
+          name: user.name,
+          role: user.role,
+          mitra_id: user.mitra_id,
+        },
+        {
+          expiresIn: '30m',
+        },
+      ),
+      user: {
         id: user.id,
         username: user.username,
         role: user.role,
-      }),
-      user,
+      },
     };
   }
 }

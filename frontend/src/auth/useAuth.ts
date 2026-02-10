@@ -1,42 +1,36 @@
 import { useContext } from "react";
-import axios from "../lib/axios";
 import { AuthContext } from "./AuthContext";
-import type { User } from "./AuthContext";
+import { loginService } from "@/services/authService";
+import type { AuthUser } from "./auth.types";
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+  const ctx = useContext(AuthContext);
+
+  if (!ctx) {
+    throw new Error("useAuth must be used within AuthProvider");
   }
 
-  const { login: setAuth, logout, user, loading } = context;
+  const { user, login: storeAuth, logout } = ctx;
 
-  // 🔍 DEBUG (temporary)
-  console.log("USE_AUTH STATE", {
-    user,
-    loading,
-    token: localStorage.getItem("access_token"),
-  });
+  const login = async (
+    username: string,
+    password: string,
+  ): Promise<{ user: AuthUser }> => {
+    const { accessToken, user } = await loginService(username, password);
 
-  const login = async (username: string, password: string) => {
-    const res = await axios.post("/auth/login", {
-      username,
-      password,
+    // 🔍 ADD THIS LINE
+    console.log("LOGIN PAYLOAD FROM SERVICE:", { accessToken, user });
+
+    storeAuth({
+      accessToken,
+      user,
     });
 
-    const data: { accessToken: string; user: User } = res.data;
-
-    setAuth({
-      user: data.user,
-      accessToken: data.accessToken,
-    });
-
-    return data;
+    return { user };
   };
 
   return {
     user,
-    loading,
     login,
     logout,
   };

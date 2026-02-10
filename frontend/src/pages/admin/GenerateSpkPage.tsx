@@ -117,7 +117,7 @@ export default function GenerateSPKPage() {
 
       <div className="alokasi-grid mt-32">
         {/* =====================
-            LEFT COLUMN
+            DATA MITRA
         ===================== */}
         <div className="form-card">
           <h3 className="form-section-title">Data Mitra</h3>
@@ -137,7 +137,7 @@ export default function GenerateSPKPage() {
         </div>
 
         {/* =====================
-            RIGHT COLUMN
+            PERIODE SPK
         ===================== */}
         <div className="form-card">
           <h3 className="form-section-title">Periode SPK</h3>
@@ -158,9 +158,9 @@ export default function GenerateSPKPage() {
         </div>
 
         {/* =====================
-            KEGIATAN (FULL ROW)
+            DATA KEGIATAN (FULL WIDTH)
         ===================== */}
-        <div className="form-card">
+        <div className="form-card grid-span-2">
           <h3 className="form-section-title">Data Kegiatan</h3>
 
           {kegiatanInputs.map((row, index) => {
@@ -205,12 +205,7 @@ export default function GenerateSPKPage() {
                 {kegiatanInputs.length > 1 && (
                   <button
                     type="button"
-                    style={{
-                      background: "transparent",
-                      color: "#b91c1c",
-                      boxShadow: "none",
-                      marginTop: "8px",
-                    }}
+                    className="btn-danger-outline"
                     onClick={() =>
                       setKegiatanInputs(
                         kegiatanInputs.filter((_, i) => i !== index),
@@ -238,9 +233,9 @@ export default function GenerateSPKPage() {
         </div>
 
         {/* =====================
-            TOTAL & ACTION
+            RINGKASAN (FULL WIDTH)
         ===================== */}
-        <div className="form-card">
+        <div className="form-card grid-span-2">
           <h3 className="form-section-title">Ringkasan Honorarium</h3>
 
           <div className="total-preview">

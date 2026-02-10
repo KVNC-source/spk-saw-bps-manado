@@ -1,37 +1,72 @@
-import axios, { AxiosHeaders } from "axios";
+import axios from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
 
-const instance = axios.create({
-  baseURL: "http://localhost:3000",
+/* =========================================================
+   AXIOS INSTANCE
+========================================================= */
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-instance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+/* =========================================================
+   REQUEST INTERCEPTOR
+========================================================= */
 
-  if (token) {
-    config.headers = AxiosHeaders.from({
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    });
-  }
+api.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    const raw = localStorage.getItem("bps-auth");
 
-  return config;
-});
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed?.accessToken) {
+          config.headers.Authorization = `Bearer ${parsed.accessToken}`;
+        }
+      } catch {
+        localStorage.removeItem("bps-auth");
+      }
+    }
 
-instance.interceptors.response.use(
-  (response) => response,
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+/* =========================================================
+   RESPONSE INTERCEPTOR
+========================================================= */
+
+api.interceptors.response.use(
+  (res) => res,
   (error) => {
-    if (error.code === "ERR_NETWORK" || error.response?.status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-      sessionStorage.clear();
-      window.location.href = "/login";
+    const status = error.response?.status;
+    const url = error.config?.url ?? "";
+
+    if (status === 401) {
+      console.warn("401 from:", url);
+
+      const raw = localStorage.getItem("bps-auth");
+      if (!raw) return Promise.reject(error);
+
+      // 🔒 safe endpoints NEVER logout
+      const SAFE_401 = ["/dashboard-summary", "/spk", "/saw", "/mitra"];
+
+      const isSafe = SAFE_401.some((p) => url.includes(p));
+      if (isSafe) {
+        console.warn("Ignoring 401 for:", url);
+        return Promise.reject(error);
+      }
+
+      // 🚨 emit logout event instead
+      window.dispatchEvent(new Event("bps-logout"));
     }
 
     return Promise.reject(error);
   },
 );
 
-export default instance;
+export default api;

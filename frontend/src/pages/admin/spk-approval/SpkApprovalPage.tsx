@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 import api from "@/lib/axios";
 
@@ -19,6 +20,7 @@ interface Spk {
     nama_mitra: string;
   };
   total_honorarium: number;
+  tanggal_pembayaran?: string | null;
 }
 
 /* ==============================
@@ -64,44 +66,83 @@ export default function SpkApprovalPage() {
       <h1>Persetujuan SPK</h1>
 
       <div className="spk-list">
-        {data.map((spk) => {
-          const statusLabel =
-            spk.status === "APPROVED"
-              ? "DISETUJUI"
-              : spk.status === "REJECTED"
-                ? "DITOLAK"
-                : "PENDING";
+        <AnimatePresence>
+          {data.map((spk, index) => {
+            const statusLabel =
+              spk.status === "APPROVED"
+                ? "DISETUJUI"
+                : spk.status === "REJECTED"
+                  ? "DITOLAK"
+                  : "PENDING";
 
-          const badgeClass =
-            spk.status === "APPROVED"
-              ? "badge-approved"
-              : spk.status === "REJECTED"
-                ? "badge-used"
-                : "badge-draft";
+            const badgeClass =
+              spk.status === "APPROVED"
+                ? "badge-approved"
+                : spk.status === "REJECTED"
+                  ? "badge-used"
+                  : "badge-draft";
 
-          return (
-            <div
-              key={spk.id}
-              className="spk-bubble spk-bubble--clickable"
-              onClick={() => navigate(`/admin/dashboard/spk/${spk.id}`)}
-            >
-              <div className="spk-bubble__top">
-                <div>
-                  <div className="spk-bubble__title">{spk.nomor_spk}</div>
-                  <div className="spk-bubble__meta">
-                    {spk.mitra.nama_mitra} • {spk.bulan}/{spk.tahun}
+            return (
+              <motion.div
+                key={spk.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                whileHover={{
+                  y: -4,
+                  boxShadow: "0 12px 24px rgba(15, 76, 129, 0.18)",
+                }}
+                whileTap={{
+                  scale: 0.97,
+                }}
+                transition={{
+                  duration: 0.25,
+                  ease: "easeOut",
+                  delay: index * 0.05,
+                }}
+                className="spk-bubble spk-bubble--clickable"
+                onClick={() => navigate(`/admin/dashboard/spk/${spk.id}`)}
+              >
+                <div className="spk-bubble__top">
+                  <div>
+                    <div className="spk-bubble__title">{spk.nomor_spk}</div>
+                    <div className="spk-bubble__meta">
+                      {spk.mitra.nama_mitra} • {spk.bulan}/{spk.tahun}
+                      {spk.tanggal_pembayaran ? (
+                        <span
+                          style={{
+                            marginLeft: 8,
+                            color: "#065f46",
+                            fontWeight: 500,
+                          }}
+                        >
+                          • Bayar: {spk.tanggal_pembayaran}
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            marginLeft: 8,
+                            color: "#b45309",
+                            fontWeight: 500,
+                          }}
+                        >
+                          • ⚠ tanggal pembayaran belum diisi
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  <span className={`badge ${badgeClass}`}>{statusLabel}</span>
                 </div>
 
-                <span className={`badge ${badgeClass}`}>{statusLabel}</span>
-              </div>
-
-              <div className="spk-bubble__amount">
-                Rp {Number(spk.total_honorarium).toLocaleString("id-ID")}
-              </div>
-            </div>
-          );
-        })}
+                <div className="spk-bubble__amount">
+                  Rp {Number(spk.total_honorarium).toLocaleString("id-ID")}
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );

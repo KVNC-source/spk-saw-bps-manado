@@ -9,6 +9,8 @@ datasource db {
   schemas  = ["spk"]
 }
 
+/// ///////////////////
+/// ///////////////////
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
@@ -23,32 +25,35 @@ model User {
   @@schema("spk")
 }
 
+/// ///////////////////
+/// ///////////////////
 model Mitra {
-  id          Int            @id @default(autoincrement())
-  nama_mitra  String
-  nik         String?
-  email       String?
-  alamat      String?
-  no_hp       String?
-  bank        String?
-  no_rekening String?
-  created_at  DateTime       @default(now())
-  alokasi     AlokasiMitra[]
-  spk         SpkDocument[]
-  users       User[]
+  id           Int            @id @default(autoincrement())
+  nama_mitra   String
+  nik          String?
+  email        String?
+  alamat       String?
+  no_hp        String?
+  bank         String?
+  no_rekening  String?
+  created_at   DateTime       @default(now())
+  alokasi      AlokasiMitra[]
+  spkDocuments SpkDocument[]
+  users        User[]
 
   @@map("mitra")
   @@schema("spk")
 }
 
 model MataAnggaran {
-  id            Int        @id @default(autoincrement())
+  id            Int               @id @default(autoincrement())
   kode_anggaran String
   nama_anggaran String
   tahun         Int
-  is_active     Boolean    @default(true)
-  created_at    DateTime   @default(now())
+  is_active     Boolean           @default(true)
+  created_at    DateTime          @default(now())
   kegiatan      Kegiatan[]
+  spkItems      SpkDocumentItem[]
 
   @@unique([kode_anggaran, tahun])
   @@map("mata_anggaran")
@@ -56,17 +61,17 @@ model MataAnggaran {
 }
 
 model Kegiatan {
-  id               Int            @id @default(autoincrement())
+  id               Int               @id @default(autoincrement())
   kode_kegiatan    String?
   nama_kegiatan    String
   satuan           String?
   mata_anggaran_id Int
-  created_at       DateTime       @default(now())
+  created_at       DateTime          @default(now())
   jenis_kegiatan   String
   tahun            Int
   tarif_per_satuan Int?
-  alokasi          AlokasiMitra[]
-  mataAnggaran     MataAnggaran   @relation(fields: [mata_anggaran_id], references: [id])
+  mataAnggaran     MataAnggaran      @relation(fields: [mata_anggaran_id], references: [id])
+  spkItems         SpkDocumentItem[]
 
   @@unique([nama_kegiatan, tahun], map: "kegiatan_nama_tahun_unique")
   @@index([jenis_kegiatan], map: "idx_kegiatan_jenis")
@@ -75,24 +80,8 @@ model Kegiatan {
   @@schema("spk")
 }
 
-model AlokasiMitra {
-  id          Int      @id @default(autoincrement())
-  tahun       Int
-  bulan       Int
-  mitra_id    Int
-  kegiatan_id Int
-  volume      Decimal
-  tarif       Decimal
-  jumlah      Decimal
-  status      String   @default("DRAFT")
-  created_at  DateTime @default(now())
-  kegiatan    Kegiatan @relation(fields: [kegiatan_id], references: [id])
-  mitra       Mitra    @relation(fields: [mitra_id], references: [id])
-
-  @@map("alokasi_mitra")
-  @@schema("spk")
-}
-
+/// ///////////////////
+/// ///////////////////
 model SpkRole {
   id           Int           @id @default(autoincrement())
   kode_role    String        @unique
@@ -106,45 +95,95 @@ model SpkRole {
 }
 
 model SpkDocument {
-  id               Int       @id @default(autoincrement())
-  tahun            Int
-  bulan            Int
-  mitra_id         Int
-  total_honorarium Decimal
-  nomor_spk        String
-  created_at       DateTime  @default(now())
-  spk_kegiatan     String
-  spk_role         String
-  spk_role_id      Int
-  tanggal_mulai    DateTime
-  tanggal_selesai  DateTime
-  kegiatan_ids     Int[]
-  admin_note       String?
-  approved_at      DateTime?
-  approved_by      String?
-  status           SpkStatus @default(PENDING)
-  mitra            Mitra     @relation(fields: [mitra_id], references: [id])
-  spkRole          SpkRole   @relation(fields: [spk_role_id], references: [id])
+  id                 Int               @id @default(autoincrement())
+  tahun              Int
+  bulan              Int
+  mitra_id           Int
+  total_honorarium   Decimal
+  nomor_spk          String
+  created_at         DateTime          @default(now())
+  spk_kegiatan       String
+  spk_role           String
+  spk_role_id        Int
+  tanggal_mulai      DateTime
+  tanggal_selesai    DateTime
+  admin_note         String?
+  approved_at        DateTime?
+  approved_by        String?
+  status             SpkStatus         @default(PENDING)
+  tanggal_perjanjian   String?         @db.Text
+  tanggal_pembayaran  String?          @db.Text  
+  alokasi            AlokasiMitra?
+  mitra              Mitra             @relation(fields: [mitra_id], references: [id], map: "fk_spk_document_mitra")
+  spkRole            SpkRole           @relation(fields: [spk_role_id], references: [id], map: "fk_spk_document_role")
+  items              SpkDocumentItem[]
 
   @@map("spk_document")
   @@schema("spk")
 }
 
-model VBastRincian {
-  tahun         Int
-  bulan         Int
-  nama_mitra    String
-  nama_kegiatan String
-  kode_anggaran String
-  volume        Decimal
-  tarif         Decimal
-  jumlah        Decimal
+model SpkDocumentItem {
+  id               Int          @id @default(autoincrement())
+  spk_document_id  Int
+  kegiatan_id      Int
+  mata_anggaran_id Int
+  jangka_waktu     String
+  volume           Decimal
+  harga_satuan     Decimal
+  nilai            Decimal
+  kegiatan         Kegiatan     @relation(fields: [kegiatan_id], references: [id], map: "fk_spk_item_kegiatan")
+  mataAnggaran     MataAnggaran @relation(fields: [mata_anggaran_id], references: [id], map: "fk_spk_item_mata_anggaran")
+  spkDocument      SpkDocument  @relation(fields: [spk_document_id], references: [id], onDelete: Cascade, map: "fk_spk_item_spk")
 
-  @@map("v_bast_rincian")
-  @@ignore
+  @@index([spk_document_id])
+  @@index([kegiatan_id])
+  @@index([mata_anggaran_id])
+  @@map("spk_document_item")
   @@schema("spk")
 }
 
+/// ///////////////////
+/// ///////////////////
+model AlokasiMitra {
+  id              Int         @id @default(autoincrement())
+  tahun           Int
+  bulan           Int
+  mitra_id        Int
+  status          String      @default("APPROVED")
+  created_at      DateTime    @default(now())
+  spk_document_id Int         @unique
+  total_nilai     Decimal
+  nomor_urut      Int?
+  nomor_spk       String?
+  mitra           Mitra       @relation(fields: [mitra_id], references: [id])
+  spkDocument     SpkDocument @relation(fields: [spk_document_id], references: [id])
+
+  @@unique([tahun, nomor_urut], map: "uniq_alokasi_nomor_urut_tahun")
+  @@map("alokasi_mitra")
+  @@schema("spk")
+}
+
+/// ///////////////////
+/// ///////////////////
+model AlokasiMitraDetail {
+  id               Int      @id @default(autoincrement())
+  alokasi_mitra_id Int
+  spk_document_id  Int
+  mitra_id         Int
+  kegiatan_id      Int
+  mata_anggaran_id Int
+  nilai            Decimal
+  created_at       DateTime @default(now())
+
+  @@index([spk_document_id])
+  @@index([kegiatan_id])
+  @@index([mata_anggaran_id])
+  @@map("alokasi_mitra_detail")
+  @@schema("spk")
+}
+
+/// ///////////////////
+/// ///////////////////
 enum Role {
   ADMIN
   MITRA

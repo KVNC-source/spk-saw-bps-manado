@@ -1,3 +1,5 @@
+import api from "@/lib/axios";
+
 export interface DashboardSummary {
   // MASTER
   totalMitra: number;
@@ -32,21 +34,11 @@ export interface DashboardSummary {
   }[];
 }
 
-export async function fetchDashboardSummary() {
-  const token = localStorage.getItem("access_token");
-  console.log("Dashboard token:", token);
-
-  const res = await fetch("http://localhost:3000/spk/dashboard-summary", {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    console.error(err);
-    throw new Error("Unauthorized");
-  }
-
-  return res.json();
+/**
+ * 🔒 Role-aware dashboard summary
+ * Backend decides what data you get
+ */
+export async function fetchDashboardSummary(): Promise<DashboardSummary> {
+  const res = await api.get<DashboardSummary>("/spk/dashboard-summary");
+  return res.data;
 }

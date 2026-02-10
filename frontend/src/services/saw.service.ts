@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from "@/lib/axios";
 import type { CalculateSawDto } from "../types/calculate-saw.dto";
 import type { SawResultDto } from "../types/saw-result.dto";
 

@@ -1,7 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CalculateSawDto } from './dto/calculate-saw.dto';
-import { SpkService } from '../spk.service';
 
 /* ─────────────────────────────
  * PERIODE LABEL RULE
@@ -47,25 +46,12 @@ const SAW_CRITERIA: readonly { key: CriterionKey; weight: number }[] = [
   { key: 'jumlahKegiatan', weight: 0.2 },
 ] as const;
 
-/* ─────────────────────────────
- * SAW SERVICE
- * ───────────────────────────── */
 @Injectable()
 export class SawService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly spkService: SpkService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async calculate(dto: CalculateSawDto) {
-    const {
-      tahun,
-      bulan,
-      spkRoleId,
-      kegiatanIds,
-      tanggalMulai,
-      tanggalSelesai,
-    } = dto;
+    const { tahun, bulan, kegiatanIds, tanggalMulai, tanggalSelesai } = dto;
 
     const mulai = new Date(tanggalMulai);
     const selesai = new Date(tanggalSelesai);
@@ -76,34 +62,40 @@ export class SawService {
       );
     }
 
-    /* 1️⃣ Fetch ONLY requested kegiatan */
-    const alokasi = await this.prisma.alokasiMitra.findMany({
+    /* 1️⃣ Fetch SPK ITEMS (SOURCE OF TRUTH FOR SAW) */
+    const items = await this.prisma.spkDocumentItem.findMany({
       where: {
-        tahun,
-        bulan,
-        status: 'APPROVED',
         kegiatan_id: { in: kegiatanIds },
+        spkDocument: {
+          tahun,
+          bulan,
+          status: 'APPROVED',
+        },
       },
       include: {
-        mitra: true,
         kegiatan: true,
+        spkDocument: {
+          include: {
+            mitra: true,
+          },
+        },
       },
     });
 
-    if (!alokasi.length) {
+    if (!items.length) {
       throw new BadRequestException(
-        'Tidak ada data alokasi mitra APPROVED untuk kegiatan yang dipilih',
+        'Tidak ada data SPK APPROVED untuk kegiatan yang dipilih',
       );
     }
 
     /* 2️⃣ Build SPK title */
     const kegiatanForTitle = Array.from(
       new Map(
-        alokasi.map((a) => [
-          a.kegiatan_id,
+        items.map((i) => [
+          i.kegiatan_id,
           {
-            nama: a.kegiatan.nama_kegiatan,
-            periode: getPeriodeLabel(a.kegiatan.nama_kegiatan, bulan, tahun),
+            nama: i.kegiatan.nama_kegiatan,
+            periode: getPeriodeLabel(i.kegiatan.nama_kegiatan, bulan, tahun),
           },
         ]),
       ).values(),
@@ -125,21 +117,23 @@ export class SawService {
       }
     >();
 
-    for (const a of alokasi) {
-      if (!map.has(a.mitra_id)) {
-        map.set(a.mitra_id, {
-          mitraId: a.mitra_id,
-          mitraNama: a.mitra.nama_mitra,
+    for (const item of items) {
+      const mitraId = item.spkDocument.mitra_id;
+
+      if (!map.has(mitraId)) {
+        map.set(mitraId, {
+          mitraId,
+          mitraNama: item.spkDocument.mitra.nama_mitra,
           totalVolume: 0,
           totalNilai: 0,
           kegiatanSet: new Set<number>(),
         });
       }
 
-      const m = map.get(a.mitra_id)!;
-      m.totalVolume += Number(a.volume);
-      m.totalNilai += Number(a.jumlah);
-      m.kegiatanSet.add(a.kegiatan_id);
+      const m = map.get(mitraId)!;
+      m.totalVolume += Number(item.volume);
+      m.totalNilai += Number(item.nilai);
+      m.kegiatanSet.add(item.kegiatan_id);
     }
 
     const alternatives = Array.from(map.values()).map((m) => ({
@@ -160,15 +154,7 @@ export class SawService {
     const ranked = alternatives
       .map((alt) => {
         let score = 0;
-        const detail: Record<
-          CriterionKey,
-          {
-            nilaiAsli: number;
-            normalized: number;
-            bobot: number;
-            kontribusi: number;
-          }
-        > = {} as any;
+        const detail: any = {};
 
         for (const c of SAW_CRITERIA) {
           const normalized = max[c.key] ? alt[c.key] / max[c.key] : 0;
@@ -192,20 +178,6 @@ export class SawService {
       })
       .sort((a, b) => b.nilaiPreferensi - a.nilaiPreferensi)
       .map((r, i) => ({ ...r, peringkat: i + 1 }));
-
-    /* 5️⃣ Generate SPK snapshot (scope locked via kegiatanIds) */
-    for (const r of ranked) {
-      await this.spkService.createSpk({
-        tahun,
-        bulan,
-        mitraId: r.mitraId,
-        spkKegiatan,
-        spkRoleId,
-        tanggalMulai: mulai,
-        tanggalSelesai: selesai,
-        kegiatanIds, // ✅ snapshot scope (LEGAL)
-      });
-    }
 
     return {
       tahun,

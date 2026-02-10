@@ -13,7 +13,7 @@
       body {
         font-family: 'Bookman Old Style', 'Times New Roman', serif;
         font-size: 12pt;
-        line-height: 1.15;
+        line-height: 1.45; /* 🔥 THIS fixes 70% of squish */
         color: #000;
       }
 
@@ -33,7 +33,8 @@
       .pasal-title {
         text-align: center;
         font-weight: bold;
-        margin: 12pt 0;
+        margin-top: 18pt;
+        margin-bottom: 12pt;
         page-break-after: avoid;
       }
 
@@ -69,6 +70,9 @@
       /* ===============================
          PASAL / AYAT TABLE (WORD STYLE)
       =============================== */
+      table.pasal-table td.pasal-text {
+        line-height: 1.45;
+      }
 
       table.pasal-table {
         width: 100%;
@@ -88,28 +92,49 @@
         text-align: justify;
       }
 
-      /* ===============================
-         LAMPIRAN TABLE
-      =============================== */
-
-      table.lampiran {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 11pt;
-      }
-
       table.lampiran th,
       table.lampiran td {
-        border: 1px solid #000;
         padding: 4pt;
+        font-size: 10.5pt;
         vertical-align: middle;
       }
 
-      table.lampiran th {
+      /* Jangka Waktu – deliberately compact */
+      table.lampiran th:nth-child(3),
+      table.lampiran td:nth-child(3) {
+        width: 2.6cm; /* 👈 makes the column narrower */
+        white-space: normal; /* 👈 ALLOW wrapping */
         text-align: center;
-        font-weight: bold;
+        font-size: 9pt;
+        line-height: 1.2; /* 👈 tighter vertical stack */
       }
 
+      /* Numbers should never wrap */
+      table.lampiran td:nth-child(4),
+      table.lampiran td:nth-child(5),
+      table.lampiran td:nth-child(6),
+      table.lampiran td:nth-child(7) {
+        white-space: nowrap;
+        text-align: center;
+      }
+
+      /* Beban Anggaran – FULL LENGTH, ONE LINE */
+      table.lampiran th:nth-child(8),
+      table.lampiran td:nth-child(8) {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+        font-size: 9.5pt;
+        text-align: left;
+      }
+
+      /* Headers: wrap by word, not letter */
+      table.lampiran th {
+        max-width: 1%;
+        white-space: normal;
+        word-break: normal;
+        text-align: center;
+      }
       /* ===============================
    TTD (SIGNATURE) – PAGE SAFE
 =============================== */
@@ -170,13 +195,12 @@
     <p class="center bold">
       TAHUN {{tahun_spk}} PADA BADAN PUSAT STATISTIK KOTA MANADO
     </p>
-    <p class="center bold">NOMOR: {{nomor_spk}}</p>
-
+    <p class="center bold">NOMOR: SPK-{{nomor_spk}}</p>
+    <!-- ================= /71710/2025================= -->
     <!-- ================= PEMBUKA ================= -->
     <p>
-      Pada hari ini {{hari_spk}}, tanggal {{tanggal_spk}}, bulan {{bulan_spk}},
-      tahun {{tahun_spk}}, bertempat di Manado, yang bertanda tangan di bawah
-      ini:
+      {{ tanggal_perjanjian }}, bertempat di Manado, yang bertanda tangan di
+      bawah ini:
     </p>
 
     <!-- ================= PIHAK ================= -->
@@ -187,7 +211,8 @@
         <td class="party-colon">:</td>
         <td>
           Pejabat Pembuat Komitmen Badan Pusat Statistik Kota Manado,
-          berkedudukan di {{alamat_bps}}, selanjutnya disebut
+          berkedudukan di {{alamat_bps}}, bertindak untuk dan atas nama Badan
+          Pusat Statistik Kota Manado, selanjutnya disebut
           <strong>PIHAK PERTAMA</strong>.
         </td>
       </tr>
@@ -327,7 +352,7 @@
           <strong>PIHAK KEDUA</strong> setelah menyelesaikan seluruh pekerjaan
           yang ditargetkan sebagaimana tercantum dalam Lampiran Perjanjian,
           dituangkan dalam Berita Acara Serah Terima Hasil Pekerjaan, dan
-          diserahkan paling lambat tanggal tiga puluh.
+          diserahkan paling lambat {{ tanggal_pembayaran }}.
         </td>
       </tr>
     </table>
@@ -565,7 +590,7 @@
         </thead>
 
         <tbody>
-          {{{lampiran_table_rows}}}
+          {{lampiran_table_rows}}
 
           <tr>
             <td colspan="6"><strong>Terbilang</strong></td>

@@ -41,6 +41,7 @@ export class BastPdfService {
       const pdf = await page.pdf({
         format: 'A4',
         printBackground: true,
+        preferCSSPageSize: true,
       });
 
       return Buffer.from(pdf);

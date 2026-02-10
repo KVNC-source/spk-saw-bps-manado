@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
 import { KegiatanService } from './kegiatan.service';
 import { KegiatanController } from './kegiatan.controller';
-import { PrismaService } from '../prisma/prisma.service';
+import { KegiatanAdminController } from './kegiatan-admin.controller';
 
 @Module({
-  controllers: [KegiatanController],
-  providers: [KegiatanService, PrismaService],
+  controllers: [
+    KegiatanController, // /kegiatan
+    KegiatanAdminController, // /admin/kegiatan
+  ],
+  providers: [KegiatanService],
 })
 export class KegiatanModule {}

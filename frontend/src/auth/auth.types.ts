@@ -1,7 +1,7 @@
 export type Role = "ADMIN" | "MITRA";
 
 export interface AuthUser {
-  id: string; // ✅ FIXED (UUID)
+  id: string;
   username: string;
   role: Role;
 }
@@ -13,7 +13,9 @@ export interface AuthPayload {
 
 export interface AuthContextType {
   user: AuthUser | null;
-  loading: boolean;
-  login: (username: string, password: string) => Promise<void>;
+
+  // Context login ONLY accepts payload
+  login: (payload: AuthPayload) => void;
+
   logout: () => void;
 }

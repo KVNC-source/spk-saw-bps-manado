@@ -2,20 +2,20 @@ import { IsInt, IsPositive } from 'class-validator';
 
 export class CreateAlokasiDto {
   @IsInt()
-  tahun: number;
+  tahun!: number;
 
   @IsInt()
-  bulan: number;
+  bulan!: number;
 
   @IsInt()
-  mitra_id: number;
+  mitra_id!: number;
 
   @IsInt()
-  kegiatan_id: number;
+  kegiatan_id!: number;
 
   @IsPositive()
-  volume: number;
+  volume!: number;
 
   @IsPositive()
-  tarif: number;
+  tarif!: number;
 }

@@ -1,17 +1,49 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma, SpkDocument } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { SpkDocument } from '@prisma/client';
 
+/**
+ * SPK APPROVAL SERVICE
+ * ===============================
+ * Responsibilities:
+ * - Approve SPK (FINAL)
+ * - Generate alokasi_mitra
+ * - Snapshot spk_document_item
+ * - Atomic & immutable
+ * - TA safe
+ */
 @Injectable()
 export class SpkApprovalService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /* =====================================================
+   * UTILITIES
+   * ===================================================== */
+  private async generateApprovedSpkNumber(
+    tx: Prisma.TransactionClient,
+    tahun: number,
+  ) {
+    const last = await tx.alokasiMitra.aggregate({
+      _max: { nomor_urut: true },
+      where: { tahun },
+    });
+
+    const nextNomor = (last._max?.nomor_urut ?? 0) + 1;
+    const nomorSpk = `${nextNomor}/71710/${tahun}`;
+
+    return {
+      nomor_urut: nextNomor,
+      nomor_spk: nomorSpk,
+    };
+  }
+
+  /* =====================================================
+   * LIST SPK (ADMIN)
+   * ===================================================== */
   findAll(): Promise<SpkDocument[]> {
     return this.prisma.spkDocument.findMany({
       include: { mitra: true },
@@ -19,6 +51,9 @@ export class SpkApprovalService {
     });
   }
 
+  /* =====================================================
+   * DETAIL SPK
+   * ===================================================== */
   async findOne(id: number): Promise<SpkDocument> {
     const spk = await this.prisma.spkDocument.findUnique({
       where: { id },
@@ -32,6 +67,9 @@ export class SpkApprovalService {
     return spk;
   }
 
+  /* =====================================================
+   * APPROVE SPK (FINAL + SNAPSHOT)
+   * ===================================================== */
   async approve(spkId: number, approvedBy: string): Promise<SpkDocument> {
     return this.prisma.$transaction(async (tx) => {
       const spk = await tx.spkDocument.findUnique({
@@ -43,70 +81,90 @@ export class SpkApprovalService {
       }
 
       if (spk.status !== 'PENDING') {
+        throw new BadRequestException('SPK tidak dapat di-approve');
+      }
+
+      /* ===============================
+       * 1️⃣ LOAD ITEMS
+       * =============================== */
+      const items = await tx.spkDocumentItem.findMany({
+        where: { spk_document_id: spk.id },
+      });
+
+      if (items.length === 0) {
         throw new BadRequestException(
-          'SPK hanya dapat disetujui jika berstatus PENDING',
+          'SPK tidak memiliki kegiatan. Pilih kegiatan terlebih dahulu.',
         );
       }
 
-      // 🔍 Check existing alokasi
-      const existingAlokasi = await tx.alokasiMitra.findMany({
-        where: {
+      /* ===============================
+       * 2️⃣ CALCULATE TOTAL
+       * =============================== */
+      const totalNilai = items.reduce(
+        (sum, item) => sum + Number(item.nilai),
+        0,
+      );
+
+      /* ===============================
+       * 🔢 GENERATE OFFICIAL SPK NUMBER
+       * =============================== */
+      const { nomor_urut, nomor_spk } = await this.generateApprovedSpkNumber(
+        tx,
+        spk.tahun,
+      );
+
+      /* ===============================
+       * 3️⃣ CREATE ALOKASI
+       * =============================== */
+      const alokasi = await tx.alokasiMitra.create({
+        data: {
+          spk_document_id: spk.id,
           mitra_id: spk.mitra_id,
           tahun: spk.tahun,
-          kegiatan_id: { in: spk.kegiatan_ids },
+          bulan: spk.bulan,
+          total_nilai: totalNilai,
+          status: 'APPROVED',
+
+          nomor_urut,
+          nomor_spk,
         },
       });
 
-      if (existingAlokasi.length === 0) {
-        // 🔹 Fetch kegiatan data
-        const kegiatanList = await tx.kegiatan.findMany({
-          where: {
-            id: { in: spk.kegiatan_ids },
-            tahun: spk.tahun,
-          },
-        });
+      /* ===============================
+       * 4️⃣ SNAPSHOT DETAIL
+       * =============================== */
+      await tx.alokasiMitraDetail.createMany({
+        data: items.map((item) => ({
+          alokasi_mitra_id: alokasi.id,
+          spk_document_id: spk.id,
+          mitra_id: spk.mitra_id,
+          kegiatan_id: item.kegiatan_id,
+          mata_anggaran_id: item.mata_anggaran_id,
+          nilai: item.nilai,
+        })),
+      });
 
-        if (kegiatanList.length === 0) {
-          throw new BadRequestException(
-            'Tidak dapat membuat alokasi: kegiatan tidak ditemukan',
-          );
-        }
-
-        // 🔹 Create alokasi rows
-        await tx.alokasiMitra.createMany({
-          data: kegiatanList.map((k) => ({
-            tahun: spk.tahun,
-            bulan: spk.bulan,
-            mitra_id: spk.mitra_id,
-            kegiatan_id: k.id,
-            volume: 1,
-            tarif: k.tarif_per_satuan ?? 0,
-            jumlah: (k.tarif_per_satuan ?? 0) * 1,
-            status: 'APPROVED',
-          })),
-        });
-      } else {
-        // 🔹 If already exists, just approve them
-        await tx.alokasiMitra.updateMany({
-          where: {
-            id: { in: existingAlokasi.map((a) => a.id) },
-          },
-          data: { status: 'APPROVED' },
-        });
-      }
-
-      // ✅ Approve SPK
+      /* ===============================
+       * 5️⃣ FINALIZE SPK
+       * =============================== */
       return tx.spkDocument.update({
-        where: { id: spkId },
+        where: { id: spk.id },
         data: {
           status: 'APPROVED',
-          approved_by: approvedBy,
+
+          // 🔥 FINALIZE SPK NUMBER HERE
+          nomor_spk, // <-- THIS IS THE MISSING PIECE
+
           approved_at: new Date(),
+          approved_by: approvedBy,
         },
       });
     });
   }
 
+  /* =====================================================
+   * REJECT SPK
+   * ===================================================== */
   async reject(spkId: number, note: string): Promise<SpkDocument> {
     if (!note?.trim()) {
       throw new BadRequestException('Catatan penolakan wajib diisi');

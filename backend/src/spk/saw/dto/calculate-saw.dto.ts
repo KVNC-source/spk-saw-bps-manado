@@ -9,25 +9,25 @@ import {
 
 export class CalculateSawDto {
   @IsInt()
-  tahun: number;
+  tahun!: number;
 
   @IsInt()
   @Min(1)
   @Max(12)
-  bulan: number;
+  bulan!: number;
 
   @IsInt()
-  spkRoleId: number;
+  spkRoleId!: number;
 
-  // ✅ kegiatan scope (explicit)
+  // kegiatan scope
   @IsArray()
   @ArrayNotEmpty()
-  kegiatanIds: number[];
+  kegiatanIds!: number[];
 
-  // ✅ Pasal 3 — DETERMINED, NOT DERIVED
+  // dates
   @IsDateString()
-  tanggalMulai: string;
+  tanggalMulai!: string;
 
   @IsDateString()
-  tanggalSelesai: string;
+  tanggalSelesai!: string;
 }

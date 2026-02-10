@@ -13,18 +13,16 @@ export class SpkPdfService {
 
   async generateSpkPdf(spkId: number): Promise<Buffer> {
     try {
-      /* ===============================
-       * 1️⃣ Build snapshot data
-       * =============================== */
+      // 1️⃣ Build snapshot data
       const data = await this.spkService.buildSpkPdfData(spkId);
+
+      console.log('[PDF DATA]', data.tanggal_pembayaran);
 
       if (!data) {
         throw new Error('SPK snapshot data not found');
       }
 
-      /* ===============================
-       * 2️⃣ Load HTML template
-       * =============================== */
+      // 2️⃣ Load HTML template
       const templatePath = path.join(
         process.cwd(),
         'src',
@@ -36,18 +34,19 @@ export class SpkPdfService {
       const templateSource = readFileSync(templatePath, 'utf-8');
 
       const lampiranRowsHtml = renderLampiranRows(data.lampiran_rows);
+      console.log(
+        '[LAMPIRAN DEBUG]',
+        typeof lampiranRowsHtml,
+        lampiranRowsHtml?.slice?.(0, 100),
+      );
 
       const html = renderHtml(templateSource, {
         ...data,
-        lampiran_table_rows: String(lampiranRowsHtml),
+        lampiran_table_rows: lampiranRowsHtml, // ✅ MUST be string already
       });
 
-      /* ===============================
-       * 3️⃣ Puppeteer
-       * =============================== */
       const browser = await puppeteer.launch({
         headless: true,
-        executablePath: puppeteer.executablePath(),
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox',

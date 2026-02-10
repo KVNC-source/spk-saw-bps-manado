@@ -10,11 +10,28 @@
         margin: 3cm;
       }
 
+      /* ===============================
+     GLOBAL PAGE LOCK (ONE PAGE ONLY)
+  =============================== */
+      * {
+        page-break-before: avoid !important;
+        page-break-after: avoid !important;
+        page-break-inside: avoid !important;
+
+        break-before: avoid !important;
+        break-after: avoid !important;
+        break-inside: avoid !important;
+      }
+
       body {
         font-family: 'Times New Roman', Times, serif;
         font-size: 12pt;
         line-height: 1.15;
         color: #000;
+
+        /* 🔒 FORCE CONTENT TO FIT ONE PAGE */
+        transform: scale(0.95);
+        transform-origin: top left;
       }
 
       p {
@@ -31,6 +48,9 @@
         font-weight: bold;
       }
 
+      /* ===============================
+     PARTY TABLE
+  =============================== */
       table.party-table {
         width: 100%;
         border-collapse: collapse;
@@ -54,10 +74,20 @@
         width: 0.5cm;
       }
 
+      /* ===============================
+     SIGNATURE / TTD BLOCK
+  =============================== */
       .signature {
-        margin-top: 48pt;
+        margin-top: 28pt; /* 🔽 reduced */
         display: flex;
         justify-content: space-between;
+      }
+
+      .ttd-block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        page-break-before: avoid;
+        break-before: avoid;
       }
     </style>
   </head>
@@ -65,40 +95,62 @@
   <body>
     <!-- ================= JUDUL ================= -->
     <p class="center bold">BERITA ACARA SERAH TERIMA PEKERJAAN</p>
-    <p class="center bold">TAHUN {{ tahun }}</p>
+    <p class="center bold">TAHUN {{tahun}}</p>
     <p class="center bold">BPS KOTA MANADO</p>
-    <p class="center bold">NOMOR: {{ bastNomor }}</p>
+    <p class="center bold">NOMOR: {{bastNomor}}</p>
 
     <!-- ================= PEMBUKA ================= -->
     <p>
-      {{ tanggalText }}, bertempat di Kantor BPS Kota Manado dengan alamat Jalan
-      Mangga III Kelurahan Bumi Nyiur Kecamatan Wanea Kota Manado, yang bertanda
-      tangan di bawah ini:
+      Pada hari ini {{ tanggalText }}, bertempat di Kantor BPS Kota Manado
+      dengan alamat Jalan Mangga III Kelurahan Bumi Nyiur Kecamatan Wanea Kota
+      Manado, yang bertanda tangan di bawah ini:
     </p>
 
-    <!-- ================= PIHAK (REUSED FROM SPK) ================= -->
+    <!-- ================= PIHAK PERTAMA ================= -->
     <table class="party-table">
       <tr>
         <td class="party-no">1.</td>
-        <td class="party-name">{{ nama_pejabat_bps }}</td>
+        <td class="party-name">Nama</td>
+        <td class="party-colon">:</td>
+        <td>{{nama_pejabat_bps}}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="party-name">Jabatan</td>
+        <td class="party-colon">:</td>
+        <td>Pejabat Pembuat Komitmen BPS Kota Manado</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="party-name">Alamat Kantor</td>
         <td class="party-colon">:</td>
         <td>
-          Pejabat Pembuat Komitmen Badan Pusat Statistik Kota Manado,
-          berkedudukan di {{ alamat_bps }}, bertindak untuk dan atas nama Badan
-          Pusat Statistik Kota Manado, selanjutnya disebut sebagai
-          <strong>PIHAK PERTAMA</strong>.
+          {{alamat_bps}}, yang selanjutnya disebut sebagai
+          <strong>PIHAK PERTAMA</strong>
         </td>
       </tr>
     </table>
 
+    <!-- ================= PIHAK KEDUA ================= -->
     <table class="party-table">
       <tr>
         <td class="party-no">2.</td>
-        <td class="party-name">{{ nama_mitra }}</td>
+        <td class="party-name">Nama</td>
+        <td class="party-colon">:</td>
+        <td>{{nama_mitra}}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="party-name">Jabatan</td>
+        <td class="party-colon">:</td>
+        <td>{{spk_role}}</td>
+      </tr>
+      <tr>
+        <td></td>
+        <td class="party-name">Alamat Rumah</td>
         <td class="party-colon">:</td>
         <td>
-          {{ spk_role }}, berkedudukan di {{ alamat_mitra }}, bertindak untuk
-          dan atas nama diri sendiri, selanjutnya disebut
+          {{alamat_mitra}}, yang selanjutnya disebut sebagai
           <strong>PIHAK KEDUA</strong>.
         </td>
       </tr>
@@ -106,38 +158,60 @@
 
     <!-- ================= ISI ================= -->
     <p>
-      Berdasarkan Surat Perintah Kerja (SPK)/ Perjanjian Kerja Nomor {{ spkNomor
-      }}, bersama ini PIHAK KEDUA telah menyerahkan hasil pekerjaan sesuai
-      dengan wilayah tugasnya di Kota Manado kepada PIHAK PERTAMA, dengan
-      ketentuan sebagai berikut:
+      Berdasarkan Surat Perintah Kerja (SPK)/ Perjanjian Kerja Nomor
+      {{spkNomor}}, bersama ini <strong>PIHAK KEDUA</strong> telah menyerahkan
+      hasil pekerjaan sesuai dengan wilayah tugasnya di Kota Manado kepada
+      <strong>PIHAK PERTAMA</strong>, dengan ketentuan sebagai berikut:
     </p>
 
-    <p>
-      a. Hasil pekerjaan PIHAK KEDUA telah sesuai dengan jumlah dan spesifikasi
-      teknis/kualitas yang ditetapkan dalam SPK.<br />
-      b. Hasil pekerjaan sebagaimana tersebut pada huruf a telah diperiksa oleh
-      Penanggungjawab Teknis dan diterima kelengkapannya oleh PIHAK PERTAMA.
-    </p>
+    <table class="party-table">
+      <tr>
+        <td style="width: 0.8cm; vertical-align: top">a.</td>
+        <td style="text-align: justify">
+          Hasil pekerjaan <strong>PIHAK KEDUA</strong> telah sesuai dengan
+          jumlah dan spesifikasi teknis/kualitas yang ditetapkan dalam SPK.
+        </td>
+      </tr>
+      <tr>
+        <td style="width: 0.8cm; vertical-align: top">b.</td>
+        <td style="text-align: justify">
+          Hasil pekerjaan sebagaimana tersebut pada huruf a telah diperiksa oleh
+          Penanggungjawab Teknis dan diterima kelengkapannya oleh
+          <strong>PIHAK PERTAMA</strong>.
+        </td>
+      </tr>
+    </table>
 
     <p>
       Demikian Berita Acara ini dibuat untuk dipergunakan sebagaimana mestinya.
     </p>
 
     <!-- ================= TANDA TANGAN ================= -->
-    <div class="signature">
-      <div class="center">
-        PIHAK KEDUA<br />
-        {{ spk_role }}<br /><br /><br />
-        <b>{{ nama_mitra }}</b>
-      </div>
-
-      <div class="center">
-        PIHAK PERTAMA<br />
-        Pejabat Pembuat Komitmen<br />
-        BPS Kota Manado<br /><br /><br />
-        <b>{{ nama_pejabat_bps }}</b><br />
-        NIP. {{ nip_pejabat_bps }}
-      </div>
+    <div class="ttd-block">
+      <table style="width: 100%; margin-top: 28pt; text-align: center">
+        <tr>
+          <td width="50%" class="bold">PIHAK KEDUA</td>
+          <td width="50%" class="bold">PIHAK PERTAMA</td>
+        </tr>
+        <tr>
+          <td>{{ spk_role }}</td>
+          <td>
+            Pejabat Pembuat Komitmen<br />
+            BPS Kota Manado
+          </td>
+        </tr>
+        <tr>
+          <td style="height: 55pt"></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><b>{{ nama_mitra }}</b></td>
+          <td>
+            <b>{{ nama_pejabat_bps }}</b><br />
+            NIP. {{ nip_pejabat_bps }}
+          </td>
+        </tr>
+      </table>
     </div>
   </body>
 </html>
