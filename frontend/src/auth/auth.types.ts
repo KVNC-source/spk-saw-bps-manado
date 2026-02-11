@@ -1,4 +1,4 @@
-export type Role = "ADMIN" | "MITRA";
+export type Role = "ADMIN" | "MITRA" | "KETUA_TIM";
 
 export interface AuthUser {
   id: string;
@@ -13,9 +13,6 @@ export interface AuthPayload {
 
 export interface AuthContextType {
   user: AuthUser | null;
-
-  // Context login ONLY accepts payload
   login: (payload: AuthPayload) => void;
-
   logout: () => void;
 }

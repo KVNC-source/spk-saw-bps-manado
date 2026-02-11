@@ -1,4 +1,4 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./useAuth";
 import type { Role } from "./auth.types";
 
@@ -8,17 +8,17 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   const { user } = useAuth();
+  const location = useLocation();
 
   // 🔒 Not logged in
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // 🔐 Logged in but role not allowed
+  // 🔐 Role restriction
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/" replace />;
   }
 
-  // ✅ Access granted
   return <Outlet />;
 }

@@ -3,19 +3,27 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MitraService } from './mitra.service';
 
 @Controller('spk/mitra')
+@UseGuards(JwtAuthGuard)
 export class MitraController {
   constructor(private readonly mitraService: MitraService) {}
 
-  @UseGuards(JwtAuthGuard)
+  /**
+   * =====================
+   * DASHBOARD (KETUA TIM)
+   * =====================
+   */
   @Get('dashboard')
   getDashboard(@Req() req) {
-    return this.mitraService.getDashboardSummary(req.user.mitra_id);
+    return this.mitraService.getDashboardSummaryByUser(req.user.id);
   }
 
-  // ✅ NEW ENDPOINT
-  @UseGuards(JwtAuthGuard)
+  /**
+   * =====================
+   * PEKERJAAN SAYA / ALOKASI
+   * =====================
+   */
   @Get('alokasi')
   getMyAlokasi(@Req() req) {
-    return this.mitraService.getMyAlokasi(req.user.mitra_id);
+    return this.mitraService.getMyAlokasiByUser(req.user.id);
   }
 }

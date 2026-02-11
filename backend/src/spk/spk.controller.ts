@@ -3,9 +3,9 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Param,
   Body,
-  Query,
   ParseIntPipe,
   Res,
   UseGuards,
@@ -16,11 +16,13 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { Public } from '../auth/public.decorator';
 
 import { SpkPdfService } from './spk-pdf.service';
 import { SpkService } from './spk.service';
 import { SpkApprovalService } from './approval/spk-approval.service';
+import { CreateManualSpkDto } from './dto/create-manual-spk.dto';
+import { Request } from 'express';
+import type { AuthRequest } from '../auth/auth-request.interface';
 
 @Controller('spk')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -31,20 +33,16 @@ export class SpkController {
     private readonly spkApprovalService: SpkApprovalService,
   ) {}
 
-  /* =====================================================
-   * DASHBOARD SUMMARY — AUTO ROLE
-   * ===================================================== */
   @Get('dashboard-summary')
   getDashboardSummary(@Req() req) {
     if (req.user.role === 'ADMIN') {
       return this.spkService.getAdminDashboardSummary();
     }
 
-    return this.spkService.getDashboardSummaryByMitra(req.user.mitra_id);
+    return this.spkService.getDashboardSummaryByUser(req.user.id);
   }
-
   /* =====================================================
-   * DASHBOARD SUMMARY — ADMIN
+   * DASHBOARD — ADMIN
    * ===================================================== */
   @Roles('ADMIN')
   @Get('admin/dashboard-summary')
@@ -53,12 +51,12 @@ export class SpkController {
   }
 
   /* =====================================================
-   * DASHBOARD SUMMARY — MITRA
+   * DASHBOARD — KETUA TIM
    * ===================================================== */
-  @Roles('MITRA')
-  @Get('mitra/dashboard-summary')
-  getMitraDashboardSummary(@Req() req) {
-    return this.spkService.getDashboardSummaryByMitra(req.user.mitra_id);
+  @Roles('KETUA_TIM')
+  @Get('ketua/dashboard-summary')
+  getKetuaDashboard(@Req() req) {
+    return this.spkService.getDashboardSummaryByUser(req.user.id);
   }
 
   /* =====================================================
@@ -71,53 +69,38 @@ export class SpkController {
   }
 
   /* =====================================================
-   * CREATE SPK — MANUAL INPUT (ADMIN)
+   * SPK LIST (KETUA TIM)
    * ===================================================== */
-  @Roles('ADMIN')
-  @Post('manual')
-  createManualSpk(
-    @Body()
-    body: {
-      mitra_id: number;
-      tanggal_mulai: string;
-      tanggal_selesai: string;
-      tanggal_perjanjian?: string;
-      tanggal_pembayaran?: string;
-      kegiatan: {
-        kegiatan_id: number;
-        volume: number;
-      }[];
-    },
-  ) {
-    return this.spkService.createManualSpk(body);
+  @Roles('KETUA_TIM')
+  @Get('mine')
+  getMySpk(@Req() req) {
+    return this.spkService.getSpkByUser(req.user.id);
   }
 
   /* =====================================================
-   * GET APPROVED ALOKASI
+   * CREATE SPK — ADMIN (MANUAL)
    * ===================================================== */
-  @Get('alokasi-approved')
-  getApprovedAlokasi(
-    @Query('tahun') tahun?: string,
-    @Query('bulan') bulan?: string,
-  ) {
-    return this.spkService.getApprovedAlokasi(
-      tahun ? Number(tahun) : undefined,
-      bulan ? Number(bulan) : undefined,
+  @Roles('ADMIN')
+  @Post('manual')
+  createManualSpk(@Body() body: CreateManualSpkDto, @Req() req: AuthRequest) {
+    return this.spkService.createManualSpk(body, req.user.id);
+  }
+
+  /* =====================================================
+   * SPK DETAIL (ADMIN OR OWNER)
+   * ===================================================== */
+  @Get(':id')
+  async getSpkById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return this.spkService.getSpkByIdWithAccessCheck(
+      id,
+      req.user.id,
+      req.user.role,
     );
   }
 
   /* =====================================================
-   * SPK DETAIL
+   * PDF (READ ONLY)
    * ===================================================== */
-  @Get(':id')
-  getSpkById(@Param('id', ParseIntPipe) id: number) {
-    return this.spkService.getSpkById(id);
-  }
-
-  /* =====================================================
-   * PDF ENDPOINT (PUBLIC)
-   * ===================================================== */
-  @Public()
   @Get(':id/pdf')
   async generatePdf(
     @Param('id', ParseIntPipe) id: number,
@@ -133,8 +116,6 @@ export class SpkController {
 
   /* =====================================================
    * UPDATE LEGAL TEXT (ADMIN)
-   * - tanggal_perjanjian
-   * - tanggal_pembayaran
    * ===================================================== */
   @Roles('ADMIN')
   @Patch(':id')
@@ -156,5 +137,27 @@ export class SpkController {
   @Patch(':id/approve')
   approveSpk(@Param('id', ParseIntPipe) id: number, @Req() req) {
     return this.spkApprovalService.approve(id, req.user.name);
+  }
+
+  /* =====================================================
+   * ADD ITEM (ADMIN)
+   * ===================================================== */
+  @Roles('ADMIN')
+  @Post(':id/items')
+  addItemToSpk(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { kegiatan_id: number; volume: number },
+    @Req() req,
+  ) {
+    return this.spkService.addSpkItem(id, req.user.role, body, req.user.id);
+  }
+
+  /* =====================================================
+   * REMOVE ITEM (ADMIN)
+   * ===================================================== */
+  @Roles('ADMIN')
+  @Delete('items/:itemId')
+  removeItemFromSpk(@Param('itemId', ParseIntPipe) itemId: number, @Req() req) {
+    return this.spkService.deleteSpkItem(itemId, req.user.role, req.user.id);
   }
 }

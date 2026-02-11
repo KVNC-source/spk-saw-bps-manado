@@ -21,6 +21,7 @@ interface Spk {
   };
   total_honorarium: number;
   tanggal_pembayaran?: string | null;
+  created_by_user_name?: string;
 }
 
 /* ==============================
@@ -109,6 +110,17 @@ export default function SpkApprovalPage() {
                     <div className="spk-bubble__title">{spk.nomor_spk}</div>
                     <div className="spk-bubble__meta">
                       {spk.mitra.nama_mitra} • {spk.bulan}/{spk.tahun}
+                      {spk.created_by_user_name && (
+                        <span
+                          style={{
+                            marginLeft: 8,
+                            color: "#1e40af",
+                            fontWeight: 500,
+                          }}
+                        >
+                          • Dibuat oleh {spk.created_by_user_name}
+                        </span>
+                      )}
                       {spk.tanggal_pembayaran ? (
                         <span
                           style={{

@@ -1,61 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
-import type { Spk } from "../spk-approval/spk.types";
-import { SpkStatus } from "../spk-approval/spk.types";
+import type { SpkDetail } from "../spk-approval/spk.types";
 
 /* ================= CONSTANTS ================= */
 
-const HARI = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-const BULAN = [
-  "Januari",
-  "Februari",
-  "Maret",
-  "April",
-  "Mei",
-  "Juni",
-  "Juli",
-  "Agustus",
-  "September",
-  "Oktober",
-  "November",
-  "Desember",
-];
-
-const TANGGAL_OPTIONS = [
-  "satu",
-  "dua",
-  "tiga",
-  "empat",
-  "lima",
-  "enam",
-  "tujuh",
-  "delapan",
-  "sembilan",
-  "sepuluh",
-  "sebelas",
-  "dua belas",
-  "tiga belas",
-  "empat belas",
-  "lima belas",
-  "enam belas",
-  "tujuh belas",
-  "delapan belas",
-  "sembilan belas",
-  "dua puluh",
-  "dua puluh satu",
-  "dua puluh dua",
-  "dua puluh tiga",
-  "dua puluh empat",
-  "dua puluh lima",
-  "dua puluh enam",
-  "dua puluh tujuh",
-  "dua puluh delapan",
-  "dua puluh sembilan",
-  "tiga puluh",
-  "tiga puluh satu",
-];
+interface KegiatanMaster {
+  id: number;
+  nama_kegiatan: string;
+}
 
 /* ================= PAGE ================= */
 
@@ -63,67 +16,51 @@ export default function SpkDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [spk, setSpk] = useState<Spk | null>(null);
+  const [spk, setSpk] = useState<SpkDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [note, setNote] = useState("");
 
-  /* ===== LEGAL INPUTS ===== */
+  /* ===== ROLE (TEMP / MOCK) ===== */
+  const userRole: "ADMIN" | "KETUA_TIM" = "ADMIN";
+  const canEditItems = userRole === "ADMIN";
 
-  const [hari, setHari] = useState("");
-  const [tanggal, setTanggal] = useState("");
-  const [bulan, setBulan] = useState("");
-  const [tahun, setTahun] = useState("");
-
-  const [tanggalBayar, setTanggalBayar] = useState("");
-  const [bulanBayar, setBulanBayar] = useState("");
-  const [tahunBayar, setTahunBayar] = useState("");
-
-  /* ===== DERIVED TEXT ===== */
-
-  const tanggalPerjanjianFinal =
-    hari && tanggal && bulan && tahun
-      ? `Pada hari ini ${hari}, tanggal ${tanggal}, bulan ${bulan}, tahun ${tahun}`
-      : "";
-
-  const tanggalPembayaranFinal =
-    tanggalBayar && bulanBayar && tahunBayar
-      ? `tanggal ${tanggalBayar}, bulan ${bulanBayar}, tahun ${tahunBayar}`
-      : "";
+  /* ===== KEGIATAN CRUD ===== */
+  const [kegiatanMaster, setKegiatanMaster] = useState<KegiatanMaster[]>([]);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedKegiatanId, setSelectedKegiatanId] = useState<number | "">("");
+  const [volume, setVolume] = useState(1);
 
   /* ===== LOAD SPK ===== */
 
+  const loadSpk = async () => {
+    const res = await api.get(`/spk/${id}`);
+    setSpk(res.data);
+  };
+
   useEffect(() => {
     if (!id) return;
-
     setLoading(true);
-    api
-      .get(`/spk/${id}`)
-      .then((res) => setSpk(res.data))
+    loadSpk()
       .catch(() => alert("Gagal memuat detail SPK"))
       .finally(() => setLoading(false));
   }, [id]);
 
+  /* ===== LOAD MASTER KEGIATAN ===== */
+
+  useEffect(() => {
+    api.get("/kegiatan").then((res) => setKegiatanMaster(res.data));
+  }, []);
+
   /* ===== ACTIONS ===== */
 
   const approve = async () => {
-    if (!spk || spk.status !== SpkStatus.PENDING) return;
-
-    if (!tanggalPerjanjianFinal || !tanggalPembayaranFinal) {
-      alert("Tanggal perjanjian dan pembayaran wajib diisi");
-      return;
-    }
+    if (!spk || spk.status !== "PENDING") return;
 
     if (!confirm("Apakah Anda yakin ingin MENYETUJUI SPK ini?")) return;
 
     try {
       setProcessing(true);
-
-      await api.patch(`/spk/${id}`, {
-        tanggal_perjanjian: tanggalPerjanjianFinal,
-        tanggal_pembayaran: tanggalPembayaranFinal,
-      });
-
       await api.patch(`/spk/${id}/approve`);
       navigate("/admin/dashboard/spk/approval");
     } finally {
@@ -143,6 +80,39 @@ export default function SpkDetailPage() {
       setProcessing(true);
       await api.patch(`/admin/spk/${id}/reject`, { admin_note: note });
       navigate("/admin/dashboard/spk/approval");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const addItem = async () => {
+    if (!selectedKegiatanId || volume <= 0) {
+      alert("Kegiatan dan volume wajib diisi");
+      return;
+    }
+
+    try {
+      setProcessing(true);
+      await api.post(`/spk/${spk!.id}/items`, {
+        kegiatan_id: selectedKegiatanId,
+        volume,
+      });
+      await loadSpk();
+      setShowAddModal(false);
+      setSelectedKegiatanId("");
+      setVolume(1);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const deleteItem = async (itemId: number) => {
+    if (!confirm("Hapus kegiatan ini?")) return;
+
+    try {
+      setProcessing(true);
+      await api.delete(`/spk/items/${itemId}`);
+      await loadSpk();
     } finally {
       setProcessing(false);
     }
@@ -181,29 +151,32 @@ export default function SpkDetailPage() {
         <div style={{ textAlign: "center", marginBottom: 32 }}>
           <div className="text-muted">TOTAL HONORARIUM</div>
           <div style={{ fontSize: 28, fontWeight: 700 }}>
-            Rp {Number(spk.total_honorarium).toLocaleString("id-ID")}
+            Rp {spk.total_honorarium.toLocaleString("id-ID")}
           </div>
         </div>
 
         {/* ===== DOWNLOAD BUTTONS ===== */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
           <button
             className="form-button"
             onClick={() =>
-              window.open(`http://localhost:3000/spk/${spk.id}/pdf`, "_blank")
+              window.open(
+                `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/spk/${spk.id}/pdf`,
+                "_blank",
+              )
             }
           >
             Download SPK (PDF)
           </button>
         </div>
 
-        {spk.status === SpkStatus.APPROVED && (
+        {spk.status === "APPROVED" && (
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <button
               className="form-button"
               onClick={() =>
                 window.open(
-                  `http://localhost:3000/bast/${spk.id}/pdf`,
+                  `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/bast/${spk.id}/pdf`,
                   "_blank",
                 )
               }
@@ -213,69 +186,52 @@ export default function SpkDetailPage() {
           </div>
         )}
 
-        {/* ===== LEGAL INPUTS ===== */}
-        {spk.status === SpkStatus.PENDING && (
+        {/* ===== KEGIATAN LIST ===== */}
+        <h3 className="form-section-title">Daftar Kegiatan</h3>
+
+        {canEditItems && (
+          <button onClick={() => setShowAddModal(true)}>
+            + Tambah Kegiatan
+          </button>
+        )}
+
+        <table className="table">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Kegiatan</th>
+              <th>Volume</th>
+              <th>Harga</th>
+              <th>Nilai</th>
+              {canEditItems && <th>Aksi</th>}
+            </tr>
+          </thead>
+          <tbody>
+            {spk.kegiatan.map((k, i) => (
+              <tr key={k.id}>
+                <td>{i + 1}</td>
+                <td>{k.nama_kegiatan}</td>
+                <td>{k.volume}</td>
+                <td>Rp {k.harga_satuan.toLocaleString("id-ID")}</td>
+                <td>Rp {k.nilai.toLocaleString("id-ID")}</td>
+                {canEditItems && (
+                  <td>
+                    <button
+                      style={{ background: "#b91c1c" }}
+                      onClick={() => deleteItem(k.id)}
+                    >
+                      Hapus
+                    </button>
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* ===== APPROVAL ===== */}
+        {spk.status === "PENDING" && (
           <>
-            <h3 className="form-section-title">Tanggal Perjanjian</h3>
-
-            <Select
-              value={hari}
-              onChange={setHari}
-              options={HARI}
-              placeholder="Pilih hari"
-            />
-            <Select
-              value={tanggal}
-              onChange={setTanggal}
-              options={TANGGAL_OPTIONS}
-              placeholder="Pilih tanggal"
-            />
-            <Select
-              value={bulan}
-              onChange={setBulan}
-              options={BULAN}
-              placeholder="Pilih bulan"
-            />
-
-            <input
-              type="number"
-              className="form-input"
-              placeholder="Tahun (contoh: 2026)"
-              value={tahun}
-              onChange={(e) => setTahun(e.target.value)}
-            />
-
-            {tanggalPerjanjianFinal && (
-              <div className="form-preview">{tanggalPerjanjianFinal}</div>
-            )}
-
-            <h3 className="form-section-title">Tanggal Pembayaran</h3>
-
-            <Select
-              value={tanggalBayar}
-              onChange={setTanggalBayar}
-              options={TANGGAL_OPTIONS}
-              placeholder="Pilih tanggal"
-            />
-            <Select
-              value={bulanBayar}
-              onChange={setBulanBayar}
-              options={BULAN}
-              placeholder="Pilih bulan"
-            />
-
-            <input
-              type="number"
-              className="form-input"
-              placeholder="Tahun (contoh: 2026)"
-              value={tahunBayar}
-              onChange={(e) => setTahunBayar(e.target.value)}
-            />
-
-            {tanggalPembayaranFinal && (
-              <div className="form-preview">{tanggalPembayaranFinal}</div>
-            )}
-
             <h3 className="form-section-title">Keputusan Administratif</h3>
 
             <textarea
@@ -299,35 +255,41 @@ export default function SpkDetailPage() {
           </>
         )}
       </div>
+
+      {/* ===== ADD KEGIATAN MODAL ===== */}
+      {showAddModal && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <h3>Tambah Kegiatan</h3>
+
+            <select
+              className="form-input"
+              value={selectedKegiatanId}
+              onChange={(e) => setSelectedKegiatanId(Number(e.target.value))}
+            >
+              <option value="">Pilih kegiatan</option>
+              {kegiatanMaster.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.nama_kegiatan}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="number"
+              min={1}
+              className="form-input"
+              value={volume}
+              onChange={(e) => setVolume(Number(e.target.value))}
+            />
+
+            <button onClick={addItem} disabled={processing}>
+              Simpan
+            </button>
+            <button onClick={() => setShowAddModal(false)}>Batal</button>
+          </div>
+        </div>
+      )}
     </div>
-  );
-}
-
-/* ================= REUSABLE SELECT ================= */
-
-function Select({
-  value,
-  onChange,
-  options,
-  placeholder,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-  placeholder: string;
-}) {
-  return (
-    <select
-      className="form-input"
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-    >
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {o}
-        </option>
-      ))}
-    </select>
   );
 }

@@ -15,14 +15,14 @@ export default function Login() {
     setError(null);
 
     try {
-      // ✅ THIS is the API call
-      const { user } = await login(username, password);
+      const user = await login(username, password);
 
-      // 🚦 role-based redirect
       if (user.role === "ADMIN") {
         navigate("/admin/dashboard", { replace: true });
       } else if (user.role === "MITRA") {
         navigate("/mitra/dashboard", { replace: true });
+      } else if (user.role === "KETUA_TIM") {
+        navigate("/ketua/dashboard", { replace: true });
       }
     } catch {
       setError("Username atau password salah");

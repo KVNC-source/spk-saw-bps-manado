@@ -13,16 +13,18 @@ export class SpkPdfService {
 
   async generateSpkPdf(spkId: number): Promise<Buffer> {
     try {
-      // 1️⃣ Build snapshot data
+      /* ===============================
+       * 1️⃣ BUILD SNAPSHOT DATA
+       * =============================== */
       const data = await this.spkService.buildSpkPdfData(spkId);
-
-      console.log('[PDF DATA]', data.tanggal_pembayaran);
 
       if (!data) {
         throw new Error('SPK snapshot data not found');
       }
 
-      // 2️⃣ Load HTML template
+      /* ===============================
+       * 2️⃣ LOAD HTML TEMPLATE
+       * =============================== */
       const templatePath = path.join(
         process.cwd(),
         'src',
@@ -33,18 +35,22 @@ export class SpkPdfService {
 
       const templateSource = readFileSync(templatePath, 'utf-8');
 
+      /* ===============================
+       * 3️⃣ BUILD LAMPIRAN ROWS
+       * =============================== */
       const lampiranRowsHtml = renderLampiranRows(data.lampiran_rows);
-      console.log(
-        '[LAMPIRAN DEBUG]',
-        typeof lampiranRowsHtml,
-        lampiranRowsHtml?.slice?.(0, 100),
-      );
 
+      /* ===============================
+       * 4️⃣ MERGE DATA INTO TEMPLATE
+       * =============================== */
       const html = renderHtml(templateSource, {
         ...data,
-        lampiran_table_rows: lampiranRowsHtml, // ✅ MUST be string already
+        lampiran_table_rows: lampiranRowsHtml,
       });
 
+      /* ===============================
+       * 5️⃣ RENDER PDF
+       * =============================== */
       const browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -66,13 +72,11 @@ export class SpkPdfService {
       await browser.close();
 
       return Buffer.from(pdfUint8);
-    } catch (error: any) {
+    } catch (error) {
       console.error('🔥 SPK PDF GENERATION ERROR');
       console.error(error);
 
-      throw new InternalServerErrorException(
-        error?.message || 'SPK PDF generation failed',
-      );
+      throw new InternalServerErrorException('SPK PDF generation failed');
     }
   }
 }

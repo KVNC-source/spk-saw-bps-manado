@@ -9,24 +9,26 @@ import { PrismaService } from '../prisma/prisma.service';
 export class MitraService {
   constructor(private prisma: PrismaService) {}
 
-  // =====================
-  // DASHBOARD SUMMARY (MITRA)
-  // =====================
-  async getDashboardSummary(mitraId: number) {
-    const totalAlokasi = await this.prisma.alokasiMitra.count({
-      where: { mitra_id: mitraId },
+  /**
+   * =====================
+   * DASHBOARD SUMMARY (KETUA TIM)
+   * =====================
+   */
+  async getDashboardSummaryByUser(userId: string) {
+    const totalSpk = await this.prisma.spkDocument.count({
+      where: { created_by_user_id: userId },
     });
 
-    const alokasiDraft = await this.prisma.alokasiMitra.count({
+    const spkPending = await this.prisma.spkDocument.count({
       where: {
-        mitra_id: mitraId,
+        created_by_user_id: userId,
         status: 'PENDING',
       },
     });
 
-    const alokasiApproved = await this.prisma.alokasiMitra.count({
+    const spkApproved = await this.prisma.spkDocument.count({
       where: {
-        mitra_id: mitraId,
+        created_by_user_id: userId,
         status: 'APPROVED',
       },
     });
@@ -34,7 +36,7 @@ export class MitraService {
     const kegiatanUsed = await this.prisma.spkDocumentItem.findMany({
       where: {
         spkDocument: {
-          mitra_id: mitraId,
+          created_by_user_id: userId,
         },
       },
       select: {
@@ -46,21 +48,23 @@ export class MitraService {
       .size;
 
     return {
-      totalAlokasi,
-      alokasiDraft,
-      alokasiApproved,
-      alokasiUsed: uniqueKegiatanCount,
+      totalSpk,
+      spkPending,
+      spkApproved,
+      kegiatanUsed: uniqueKegiatanCount,
     };
   }
 
-  // =====================
-  // PEKERJAAN SAYA (MITRA)
-  // =====================
-  async getMyAlokasi(mitraId: number) {
+  /**
+   * =====================
+   * PEKERJAAN SAYA (KETUA TIM)
+   * =====================
+   */
+  async getMyAlokasiByUser(userId: string) {
     return this.prisma.spkDocumentItem.findMany({
       where: {
         spkDocument: {
-          mitra_id: mitraId,
+          created_by_user_id: userId,
         },
       },
       include: {
@@ -76,6 +80,7 @@ export class MitraService {
             status: true,
             tahun: true,
             bulan: true,
+            mitra_id: true,
           },
         },
       },
@@ -85,9 +90,11 @@ export class MitraService {
     });
   }
 
-  // =====================
-  // DATA MITRA (ADMIN)
-  // =====================
+  /**
+   * =====================
+   * DATA MITRA (ADMIN)
+   * =====================
+   */
   async findAll() {
     return this.prisma.mitra.findMany({
       orderBy: {
@@ -135,7 +142,7 @@ export class MitraService {
       no_rekening?: string;
     },
   ) {
-    await this.findById(id); // ensures existence
+    await this.findById(id);
 
     return this.prisma.mitra.update({
       where: { id },
@@ -144,12 +151,9 @@ export class MitraService {
   }
 
   async remove(id: number) {
-    await this.findById(id); // ensures existence
+    await this.findById(id);
 
-    /**
-     * 🔒 SAFETY RULE (RECOMMENDED)
-     * Prevent deleting mitra already used in SPK
-     */
+    // 🔒 Prevent deleting mitra already used in SPK
     const used = await this.prisma.spkDocument.count({
       where: { mitra_id: id },
     });

@@ -4,17 +4,13 @@ import { useAuth } from "../auth/useAuth";
 export default function RootRedirect() {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  const roleRedirect: Record<string, string> = {
+    ADMIN: "/admin/dashboard",
+    MITRA: "/mitra/dashboard",
+    KETUA_TIM: "/ketua/dashboard",
+  };
 
-  if (user.role === "ADMIN") {
-    return <Navigate to="/admin/dashboard" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (user.role === "MITRA") {
-    return <Navigate to="/mitra/dashboard" replace />;
-  }
-
-  return <Navigate to="/login" replace />;
+  return <Navigate to={roleRedirect[user.role] ?? "/login"} replace />;
 }

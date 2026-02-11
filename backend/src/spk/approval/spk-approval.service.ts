@@ -154,7 +154,7 @@ export class SpkApprovalService {
 
           // 🔥 FINALIZE SPK NUMBER HERE
           nomor_spk, // <-- THIS IS THE MISSING PIECE
-
+          total_honorarium: totalNilai,
           approved_at: new Date(),
           approved_by: approvedBy,
         },

@@ -12,14 +12,16 @@ datasource db {
 /// ///////////////////
 /// ///////////////////
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  name      String
-  password  String
-  role      Role
-  mitra_id  Int?
-  createdAt DateTime @default(now())
-  mitra     Mitra?   @relation(fields: [mitra_id], references: [id])
+  id           String        @id @default(uuid())
+  username     String        @unique
+  name         String
+  password     String
+  role         Role
+  mitra_id     Int?
+  createdAt    DateTime      @default(now())
+  email        String?       @unique(map: "user_email_unique")
+  spk_document SpkDocument[]
+  mitra        Mitra?        @relation(fields: [mitra_id], references: [id])
 
   @@map("user")
   @@schema("spk")
@@ -95,29 +97,35 @@ model SpkRole {
 }
 
 model SpkDocument {
-  id                 Int               @id @default(autoincrement())
-  tahun              Int
-  bulan              Int
-  mitra_id           Int
-  total_honorarium   Decimal
-  nomor_spk          String
-  created_at         DateTime          @default(now())
-  spk_kegiatan       String
-  spk_role           String
-  spk_role_id        Int
-  tanggal_mulai      DateTime
-  tanggal_selesai    DateTime
-  admin_note         String?
-  approved_at        DateTime?
-  approved_by        String?
-  status             SpkStatus         @default(PENDING)
-  tanggal_perjanjian   String?         @db.Text
-  tanggal_pembayaran  String?          @db.Text  
-  alokasi            AlokasiMitra?
-  mitra              Mitra             @relation(fields: [mitra_id], references: [id], map: "fk_spk_document_mitra")
-  spkRole            SpkRole           @relation(fields: [spk_role_id], references: [id], map: "fk_spk_document_role")
-  items              SpkDocumentItem[]
+  id                   Int               @id @default(autoincrement())
+  tahun                Int
+  bulan                Int
+  mitra_id             Int
+  total_honorarium     Decimal
+  nomor_spk            String
+  created_at           DateTime          @default(now())
+  spk_kegiatan         String
+  spk_role             String
+  spk_role_id          Int
+  tanggal_mulai        DateTime
+  tanggal_selesai      DateTime
+  admin_note           String?
+  approved_at          DateTime?
+  approved_by          String?
+  status               SpkStatus         @default(PENDING)
+  tanggal_pembayaran   String?
+  tanggal_perjanjian   String?
+  created_by_user_id   String
+  created_by_user_name String?
+  alokasi              AlokasiMitra?
+  user                 User              @relation(fields: [created_by_user_id], references: [id], map: "fk_spk_created_by")
+  mitra                Mitra             @relation(fields: [mitra_id], references: [id], map: "fk_spk_document_mitra")
+  spkRole              SpkRole           @relation(fields: [spk_role_id], references: [id], map: "fk_spk_document_role")
+  items                SpkDocumentItem[]
 
+  @@index([created_by_user_id], map: "spk_document_created_by_idx")
+  @@index([created_by_user_id, status], map: "spk_document_created_by_status_idx")
+  @@index([status], map: "idx_spk_status")
   @@map("spk_document")
   @@schema("spk")
 }
@@ -154,11 +162,13 @@ model AlokasiMitra {
   spk_document_id Int         @unique
   total_nilai     Decimal
   nomor_urut      Int?
-  nomor_spk       String?
+  nomor_spk       String?     @unique(map: "alokasi_mitra_nomor_spk_unique")
   mitra           Mitra       @relation(fields: [mitra_id], references: [id])
   spkDocument     SpkDocument @relation(fields: [spk_document_id], references: [id])
 
   @@unique([tahun, nomor_urut], map: "uniq_alokasi_nomor_urut_tahun")
+  @@unique([nomor_urut, tahun], map: "alokasi_mitra_nomor_urut_tahun_unique")
+  @@index([tahun], map: "idx_alokasi_tahun")
   @@map("alokasi_mitra")
   @@schema("spk")
 }
@@ -187,6 +197,7 @@ model AlokasiMitraDetail {
 enum Role {
   ADMIN
   MITRA
+  KETUA_TIM
 
   @@schema("spk")
 }
@@ -195,6 +206,7 @@ enum SpkStatus {
   PENDING
   APPROVED
   REJECTED
+  CANCELLED
 
   @@schema("spk")
 }

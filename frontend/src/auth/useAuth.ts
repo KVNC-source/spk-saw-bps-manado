@@ -15,18 +15,15 @@ export function useAuth() {
   const login = async (
     username: string,
     password: string,
-  ): Promise<{ user: AuthUser }> => {
+  ): Promise<AuthUser> => {
     const { accessToken, user } = await loginService(username, password);
-
-    // 🔍 ADD THIS LINE
-    console.log("LOGIN PAYLOAD FROM SERVICE:", { accessToken, user });
 
     storeAuth({
       accessToken,
       user,
     });
 
-    return { user };
+    return user;
   };
 
   return {
