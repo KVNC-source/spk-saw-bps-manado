@@ -121,8 +121,6 @@ Check versions:
 git clone https://github.com/KVNC-source/spk-saw-bps-manado.git
 cd spk-saw-bps-manado
 
----
-
 ### 2. Backend Setup
 
 Navigate to backend directory:
@@ -140,19 +138,13 @@ PORT=3000
 Open PostgreSQL and run:
 CREATE DATABASE spk_saw_db;
 
----
-
 ### Step 2 – Run Prisma Migration
 
 npx prisma migrate dev --name init
 
----
-
 ### Step 3 – Generate Prisma Client
 
 npx prisma generate
-
----
 
 ## ▶️ Run Backend Server
 
@@ -165,8 +157,6 @@ npm run start:dev
 ### Navigate to frontend folder
 
 cd frontend (2nd terminal)
-
----
 
 ## ▶️ Run Frontend
 
@@ -182,8 +172,6 @@ npm run dev
 - Rankings are locked after generation
 - SPK generation is based on final ranking
 
----
-
 # 📈 Current Development Status
 
 ## ✅ Completed
@@ -196,8 +184,6 @@ npm run dev
 - Prisma schema finalized
 - Environment configuration stabilized
 
----
-
 # 🎓 Academic Context
 
 This project aligns with:
@@ -209,14 +195,10 @@ This project aligns with:
 
 Developed as part of an academic Final Project (Tugas Akhir).
 
----
-
 # 📄 License
 
 Developed for educational and institutional purposes only.  
 Not intended for commercial redistribution.
-
----
 
 # 🏁 Final Statement
 
