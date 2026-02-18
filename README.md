@@ -205,6 +205,5 @@ From approved workload data
 → into transparent ranking  
 → and formal SPK generation
 
-Fully auditable.  
 Fully data-driven.  
 Built for institutional accountability.
