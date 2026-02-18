@@ -160,8 +160,6 @@ cd frontend (2nd terminal)
 
 npm run dev
 
----
-
 # 🔒 Business Rules
 
 - SAW calculation can only be executed once per period
