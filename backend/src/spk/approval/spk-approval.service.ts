@@ -116,7 +116,7 @@ export class SpkApprovalService {
       /* ===============================
        * 3️⃣ CREATE ALOKASI
        * =============================== */
-      const alokasi = await tx.alokasiMitra.create({
+      await tx.alokasiMitra.create({
         data: {
           spk_document_id: spk.id,
           mitra_id: spk.mitra_id,
@@ -128,20 +128,6 @@ export class SpkApprovalService {
           nomor_urut,
           nomor_spk,
         },
-      });
-
-      /* ===============================
-       * 4️⃣ SNAPSHOT DETAIL
-       * =============================== */
-      await tx.alokasiMitraDetail.createMany({
-        data: items.map((item) => ({
-          alokasi_mitra_id: alokasi.id,
-          spk_document_id: spk.id,
-          mitra_id: spk.mitra_id,
-          kegiatan_id: item.kegiatan_id,
-          mata_anggaran_id: item.mata_anggaran_id,
-          nilai: item.nilai,
-        })),
       });
 
       /* ===============================

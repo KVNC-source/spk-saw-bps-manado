@@ -1,5 +1,5 @@
 /* =========================================================
-   TAILWIND ENTRY POINT
+   TAILWIND ENTRY
 ========================================================= */
 
 @tailwind base;
@@ -35,29 +35,60 @@
 }
 
 /* =========================================================
-   SHARED GLASS / NEUMORPHISM
+   STRUCTURE CONTAINERS (FORCED SYMMETRY)
+========================================================= */
+
+@layer components {
+  .layout-container {
+    @apply max-w-7xl mx-auto px-12;
+  }
+
+  .page-container,
+  .dashboard-container {
+    @apply max-w-7xl mx-auto px-12 py-10;
+  }
+
+  .section-spacing {
+    @apply mb-12;
+  }
+}
+
+/* =========================================================
+   GLASS SYSTEM
 ========================================================= */
 
 @layer components {
   .glass {
-    @apply bg-glass-bg backdrop-blur-glass border border-[rgba(255,255,255,0.45)] shadow-neo rounded-2xl;
+    @apply bg-glass-bg backdrop-blur-glass border border-white/40 shadow-neo rounded-2xl;
+  }
+
+  .interactive-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .interactive-lift:hover {
+    transform: translateY(-4px);
   }
 
   .form-card,
   .kpi-card,
   .table-wrapper,
   .spk-bubble {
-    @apply glass;
+    @apply glass interactive-lift;
   }
 }
 
 /* =========================================================
-   NAVBAR
+   NAVBAR (PERFECTLY CENTERED)
 ========================================================= */
 
 @layer components {
   .admin-navbar {
-    @apply h-16 px-8 flex items-center justify-between border-b border-[rgba(255,255,255,0.45)];
+    @apply h-16 border-b border-white/40;
+  }
+
+  .admin-navbar__inner {
+    @apply max-w-7xl mx-auto px-12 h-full flex items-center justify-between;
   }
 
   .admin-navbar__brand strong {
@@ -69,11 +100,11 @@
   }
 
   .admin-navbar__nav {
-    @apply flex gap-6;
+    @apply flex gap-8;
   }
 
   .admin-navbar__nav a {
-    @apply text-text-muted font-medium no-underline;
+    @apply text-text-muted font-medium no-underline transition-colors duration-200;
   }
 
   .admin-navbar__nav a.active {
@@ -82,30 +113,25 @@
 }
 
 /* =========================================================
-   PAGE / DASHBOARD
+   DASHBOARD
 ========================================================= */
 
 @layer components {
-  .page-container,
-  .dashboard-container {
-    @apply px-10 py-8;
-  }
-
   .dashboard-title {
     @apply text-[28px] font-bold text-gov-blue;
   }
 
   .dashboard-subtitle {
-    @apply mt-1 text-text-muted;
+    @apply mt-2 text-text-muted;
   }
 
   .dashboard-kpi {
-    @apply grid gap-7 mb-10;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    @apply grid gap-8 mb-12;
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .kpi-card {
-    @apply p-6;
+    @apply p-8;
   }
 
   .kpi-label {
@@ -113,7 +139,21 @@
   }
 
   .kpi-value {
-    @apply text-[32px] font-bold text-gov-blue;
+    @apply text-[32px] font-bold text-gov-blue mt-2;
+  }
+}
+
+/* Responsive symmetry */
+
+@media (max-width: 1280px) {
+  .dashboard-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-kpi {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -123,11 +163,11 @@
 
 @layer components {
   .table-wrapper {
-    @apply p-4;
+    @apply p-6;
   }
 
   .gov-table {
-    @apply w-full border-separate border-spacing-0 rounded-xl overflow-hidden bg-white;
+    @apply w-full border-separate border-spacing-0 rounded-xl overflow-hidden bg-white/95 backdrop-blur-sm;
   }
 
   .gov-table thead {
@@ -135,11 +175,11 @@
   }
 
   .gov-table th {
-    @apply px-4 py-3 text-xs font-semibold uppercase text-white;
+    @apply px-6 py-4 text-xs font-semibold uppercase text-white text-left;
   }
 
   .gov-table td {
-    @apply px-4 py-3 border-b border-black/5;
+    @apply px-6 py-4 border-b border-black/5;
   }
 
   .gov-table tbody tr:hover {
@@ -152,12 +192,12 @@
 }
 
 /* =========================================================
-   BADGES (FIXED)
+   BADGES
 ========================================================= */
 
 @layer components {
   .badge {
-    @apply inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold min-w-[90px];
+    @apply inline-flex items-center justify-center px-4 py-1 rounded-full text-xs font-semibold min-w-[100px];
   }
 
   .badge-approved {
@@ -174,20 +214,25 @@
 }
 
 /* =========================================================
-   FORMS
+   FORMS (STRICT 2-COLUMN SYMMETRY)
 ========================================================= */
 
 @layer components {
   .form-card {
-    @apply p-6;
+    @apply p-8;
   }
 
   .form-section-title {
-    @apply text-base font-semibold text-gov-blue mb-3;
+    @apply text-base font-semibold text-gov-blue mb-6;
+  }
+
+  .form-grid-2 {
+    @apply grid gap-8;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .form-card label {
-    @apply block mt-4 mb-1 text-[13px] font-semibold text-text-muted;
+    @apply block mb-2 text-[13px] font-semibold text-text-muted;
   }
 
   .form-card input,
@@ -201,11 +246,17 @@
   }
 
   .form-card button {
-    @apply w-full h-11 mt-4 rounded-xl bg-gov-blue text-white font-semibold;
+    @apply w-full h-11 mt-6 rounded-xl bg-gov-blue text-white font-semibold transition-colors duration-200;
   }
 
   .form-card button:hover {
     @apply bg-[#0d3f6b];
+  }
+}
+
+@media (max-width: 768px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -215,11 +266,11 @@
 
 @layer components {
   .spk-list {
-    @apply grid gap-5;
+    @apply grid gap-6;
   }
 
   .spk-bubble {
-    @apply p-6 grid grid-cols-[1fr_auto] items-center;
+    @apply p-8 grid grid-cols-[1fr_auto] items-center;
     animation: bubbleIn 0.25s ease-out;
   }
 
@@ -228,29 +279,11 @@
   }
 
   .spk-bubble__meta {
-    @apply text-[13px] text-text-muted;
+    @apply text-[13px] text-text-muted mt-1;
   }
 
   .spk-bubble__amount {
-    @apply font-bold mt-1;
-  }
-}
-
-/* =========================================================
-   UTILITIES
-========================================================= */
-
-@layer utilities {
-  .text-muted {
-    @apply text-text-muted;
-  }
-
-  .mt-32 {
-    margin-top: 32px;
-  }
-
-  .grid-span-2 {
-    grid-column: 1 / -1;
+    @apply font-bold mt-2;
   }
 }
 

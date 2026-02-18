@@ -1,10 +1,12 @@
 import {
   IsNumber,
   IsString,
-  IsOptional,
   IsArray,
   ValidateNested,
+  IsDateString,
+  IsOptional, // ← ADD THIS BACK
 } from 'class-validator';
+
 import { Type } from 'class-transformer';
 
 class KegiatanItemDto {
@@ -19,18 +21,20 @@ export class CreateManualSpkDto {
   @IsNumber()
   mitra_id!: number;
 
-  @IsString()
+  // ✅ REQUIRED NOW
+  @IsDateString()
   tanggal_mulai!: string;
 
-  @IsString()
+  @IsDateString()
   tanggal_selesai!: string;
 
-  @IsOptional()
+  // Still optional
   @IsString()
+  @IsOptional()
   tanggal_perjanjian?: string;
 
-  @IsOptional()
   @IsString()
+  @IsOptional()
   tanggal_pembayaran?: string;
 
   @IsArray()

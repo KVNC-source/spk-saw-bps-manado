@@ -6,18 +6,19 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
-      ROLES_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    // No role restriction → allow
+    // No roles required → allow access
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }
@@ -25,14 +26,15 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.role) {
+    if (!user) {
+      throw new ForbiddenException('User tidak ditemukan');
+    }
+
+    if (!user.role) {
       throw new ForbiddenException('Role tidak ditemukan');
     }
 
-    const userRole = String(user.role).toUpperCase();
-    const allowedRoles = requiredRoles.map((r) => r.toUpperCase());
-
-    if (!allowedRoles.includes(userRole)) {
+    if (!requiredRoles.includes(user.role as Role)) {
       throw new ForbiddenException('Anda tidak memiliki akses ke endpoint ini');
     }
 

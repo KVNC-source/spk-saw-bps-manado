@@ -3,11 +3,25 @@ import * as puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface BastTemplateData {
+  bastNomor: string;
+  spkNomor: string; // ✅ ADD THIS
+  tanggalText: string;
+
+  nama_pejabat_bps: string;
+  nip_pejabat_bps?: string;
+  alamat_bps: string;
+
+  nama_mitra: string;
+  alamat_mitra: string;
+  spk_role: string;
+}
+
 @Injectable()
 export class BastPdfService {
   async generatePdf(
     templateName: string,
-    data: Record<string, any>,
+    data: BastTemplateData,
   ): Promise<Buffer> {
     const templatePath = path.join(
       process.cwd(),
@@ -26,11 +40,14 @@ export class BastPdfService {
     let html = fs.readFileSync(templatePath, 'utf8');
 
     for (const [key, value] of Object.entries(data)) {
-      html = html.replace(new RegExp(`{{\\s*${key}\\s*}}`, 'g'), value ?? '');
+      html = html.replace(
+        new RegExp(`{{\\s*${key}\\s*}}`, 'g'),
+        String(value ?? ''),
+      );
     }
 
     const browser = await puppeteer.launch({
-      headless: true,
+      headless: true, // ✅ FIX
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
@@ -41,7 +58,6 @@ export class BastPdfService {
       const pdf = await page.pdf({
         format: 'A4',
         printBackground: true,
-        preferCSSPageSize: true,
       });
 
       return Buffer.from(pdf);

@@ -1,113 +1,230 @@
-# SPK SAW – SIBEMI  
-**Decision Support System for Mitra Evaluation using Simple Additive Weighting (SAW)**  
-**Integrated with SIBEMI (Sistem Pengisian Beban Kerja Mitra Bulanan)**  
-**BPS Kota Manado**
+# SPK SAW – SIBEMI
+
+### Decision Support System for Mitra Evaluation using Simple Additive Weighting (SAW)
+
+**Integrated with SIBEMI (Sistem Pengisian Beban Kerja Mitra Bulanan)** **BPS Kota Manado**
 
 ---
 
 ## 📌 Overview
 
-This project is a **web-based Decision Support System (SPK)** developed to support **BPS Kota Manado** in evaluating and selecting mitra (partners) objectively and transparently.
+**SPK SAW – SIBEMI** is a web-based Decision Support System (Sistem Pendukung Keputusan) developed for **BPS Kota Manado** to evaluate and rank _mitra_ (partners) objectively.
 
-The system implements the **Simple Additive Weighting (SAW)** method using **real workload data** from SIBEMI.  
-Decisions are **data-driven, auditable, and period-based**, with the final output being the **automatic generation of SPK (Surat Perjanjian Kerja)**.
+The system pulls real, approved workload data from the SIBEMI system and applies the **Simple Additive Weighting (SAW)** method to produce:
+
+- **Transparent Ranking:** Data-driven results based on mathematical modeling.
+- **Period-based Locking:** Decision locking to ensure data integrity for each evaluation cycle.
+- **Automatic SPK Metadata:** Streamlined generation of work order (SPK) details.
+- **Full Traceability:** Audit trail from raw workload data → normalization → weighted scores → final ranking.
 
 ---
 
 ## 🎯 Objectives
 
-- Provide objective and transparent mitra evaluation  
-- Replace manual and subjective decision-making  
-- Ensure traceability from workload data to final decision  
-- Automate SPK generation based on decision results  
-- Support academic research and Tugas Akhir requirements  
-
----
-
-## ⚙️ Tech Stack
-
-### Backend
-- **NestJS** (REST API)
-- **PostgreSQL**
-- **Prisma ORM**
-- Modular architecture (SAW, SPK, Mitra, Prisma)
-
-### Frontend
-- **React + TypeScript**
-- **Tailwind CSS**
-- (Frontend integration in progress)
+- Provide objective and data-driven mitra evaluation.
+- Replace manual and subjective ranking processes.
+- Ensure auditability and traceability for institutional accountability.
+- Automate the SPK generation process.
+- Support academic **Tugas Akhir** research in Decision Support Systems.
 
 ---
 
 ## 🧠 Decision Method: Simple Additive Weighting (SAW)
 
-The SAW method is implemented using the following criteria:
-
-| Criterion | Description | Weight | Type |
-|---------|------------|--------|------|
-| totalVolume | Total workload volume | 0.3 | Benefit |
-| totalNilai | Total honorarium value | 0.5 | Benefit |
-| jumlahKegiatan | Number of activities | 0.2 | Benefit |
+### Criteria & Weighting
 
 Only workload data with status **APPROVED** is included in the calculation.
 
-Each SAW result provides:
-- Original criterion values  
-- Normalized values  
-- Weighted contributions  
-- Final preference score  
-- Ranking position  
+| Criterion        | Description            | Weight | Type    |
+| :--------------- | :--------------------- | :----: | :------ |
+| `totalVolume`    | Total workload volume  |  0.3   | Benefit |
+| `totalNilai`     | Total honorarium value |  0.5   | Benefit |
+| `jumlahKegiatan` | Number of activities   |  0.2   | Benefit |
+
+### SAW Output
+
+1.  **Raw values** per criterion.
+2.  **Normalized values** (scaling data to a 0-1 range).
+3.  **Weighted scores** (applying priority weights).
+4.  **Final preference score** used for ranking.
 
 ---
 
+## 🏗️ Tech Stack
 
-### Notes:
-- SAW calculation can only be executed **once per period**
-- Re-running SAW for the same period is prevented
-- All decisions are based on real, approved data
+**Backend:**
 
+- NestJS (Node.js Framework)
+- PostgreSQL (Database)
+- Prisma (ORM)
+- REST API Design
+
+**Frontend:**
+
+- React + TypeScript
+- Tailwind CSS (Styling)
+- React Router (Navigation)
+- Axios (API Consumption)
 
 ---
 
-## 📌 Current Status
+## 📂 Project Structure
 
-### ✅ Completed
-- SAW calculation logic
-- Mitra ranking based on real data
-- Automatic SPK metadata generation
+```text
+spk-saw-bps-manado/
+│
+├── backend/
+│   ├── src/
+│   │   ├── saw/          # SAW Calculation Engine
+│   │   ├── prisma/       # DB Connection & Client
+│   │   ├── spk/          # SPK Generation Logic
+│   │   └── main.ts       # Entry Point
+│   ├── prisma/
+│   │   ├── schema.prisma # Database Schema
+│   │   └── seed.ts       # Initial Data Seeding
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── auth/         # Authentication Logic
+│   │   ├── router/       # App Routing
+│   │   ├── App.tsx       # Main Component
+│   │   └── index.css     # Tailwind Directives
+│   └── package.json
+│
+└── README.md
+```
+
+---
+
+### 📋 Prerequisites
+
+Ensure you have the following software installed on your machine:
+
+- **Node.js** (v18.x or higher)
+- **npm** (v9.x or higher)
+- **PostgreSQL** (v14.x or higher)
+- **Git** (Latest version)
+
+Check versions:
+
+- node -v
+- npm -v
+- psql --version
+
+---
+
+## How to Run Locally
+
+### 1. Clone Repository
+
+git clone https://github.com/KVNC-source/spk-saw-bps-manado.git
+cd spk-saw-bps-manado
+
+---
+
+### 2. Backend Setup
+
+Navigate to backend directory:
+cd backend
+npm install
+`.env` file in `backend/`: DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/spk_saw_db?schema=public"
+PORT=3000
+
+---
+
+## 🗄️ Database Setup
+
+### Step 1 – Create Database
+
+Open PostgreSQL and run:
+CREATE DATABASE spk_saw_db;
+
+---
+
+### Step 2 – Run Prisma Migration
+
+npx prisma migrate dev --name init
+
+---
+
+### Step 3 – Generate Prisma Client
+
+npx prisma generate
+
+---
+
+## ▶️ Run Backend Server
+
+npm run start:dev
+
+---
+
+# 3️⃣ Frontend Setup (React + Tailwind)
+
+### Navigate to frontend folder
+
+cd frontend (2nd terminal)
+
+---
+
+## ▶️ Run Frontend
+
+npm run dev
+
+---
+
+# 🔒 Business Rules
+
+- SAW calculation can only be executed once per period
+- Re-calculation for the same period is blocked
+- Only APPROVED workload data is included
+- Rankings are locked after generation
+- SPK generation is based on final ranking
+
+---
+
+# 📈 Current Development Status
+
+## ✅ Completed
+
+- SAW calculation engine
+- Normalization & weighted scoring
+- Mitra ranking system
 - Period-based decision locking
-- Database schema finalized
+- SPK metadata generation
+- Prisma schema finalized
 - Environment configuration stabilized
 
-### 🚧 In Progress
-- SPK document (PDF) generation
-- BAST document module
-- Frontend dashboard integration
+---
+
+# 🎓 Academic Context
+
+This project aligns with:
+
+- Decision Support System (SPK) theory
+- Multi-Criteria Decision Making (MCDM)
+- Software Engineering best practices
+- Real-world institutional case study
+
+Developed as part of an academic Final Project (Tugas Akhir).
 
 ---
 
-## 🎓 Academic Context
+# 📄 License
 
-This project is developed as part of an **academic final project (Tugas Akhir)** and aligns with:
-
-- Decision Support System (SPK) theory  
-- Multi-Criteria Decision Making (MCDM)  
-- Software Engineering best practices  
-- Real-world institutional case study (BPS Kota Manado)  
+Developed for educational and institutional purposes only.  
+Not intended for commercial redistribution.
 
 ---
 
-## 📄 License
+# 🏁 Final Statement
 
-This project is developed for **educational and institutional purposes**.  
-All workflows and data structures are adapted to BPS operational needs.
+From approved workload data  
+→ through objective SAW calculation  
+→ into transparent ranking  
+→ and formal SPK generation
 
----
-
-> *From approved workload data to formal SPK documents — transparently and objectively.*
-, ensuring separation of concerns and scalability.
-
-
-
-The overall decision-making flow of the system is as follows:
-
+Fully auditable.  
+Fully data-driven.  
+Built for institutional accountability.

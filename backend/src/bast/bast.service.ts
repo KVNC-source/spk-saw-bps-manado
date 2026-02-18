@@ -26,6 +26,12 @@ export class BastService {
       throw new NotFoundException('SPK tidak ditemukan');
     }
 
+    if (spk.status !== 'APPROVED') {
+      throw new BadRequestException(
+        'BAST hanya dapat dibuat untuk SPK yang telah disetujui',
+      );
+    }
+
     if (!spk.tanggal_pembayaran) {
       throw new BadRequestException('Tanggal pembayaran belum diisi pada SPK');
     }
@@ -38,9 +44,7 @@ export class BastService {
     });
 
     if (!alokasi) {
-      throw new BadRequestException(
-        'BAST hanya dapat dibuat untuk SPK yang telah disetujui',
-      );
+      throw new BadRequestException('Alokasi tidak ditemukan untuk SPK ini');
     }
 
     /* ===============================
@@ -55,24 +59,30 @@ export class BastService {
     }
 
     /* ===============================
-     * 4️⃣ RENDER DATA (STRING-BASED)
+     * 4️⃣ BUILD TEMPLATE DATA
      * =============================== */
+
+    if (!alokasi.nomor_spk) {
+      throw new BadRequestException('Nomor SPK resmi belum tersedia.');
+    }
+
     const renderData = {
       bastNomor: `BAST-${alokasi.nomor_spk}`,
-
-      // 🔥 USE STRING AS-IS
+      spkNomor: alokasi.nomor_spk,
       tanggalText: spk.tanggal_pembayaran,
 
       nama_pejabat_bps: 'Arista Roza Belawan, SST',
-      nip_pejabat_bps: process.env.PPK_NIP,
+      nip_pejabat_bps: process.env.PPK_NIP ?? '',
       alamat_bps:
         'Jalan Mangga III Kelurahan Bumi Nyiur Kecamatan Wanea Kota Manado',
 
       nama_mitra: mitra.nama_mitra,
-      alamat_mitra: mitra.alamat,
-      spk_role: spk.spk_role,
+      alamat_mitra: mitra.alamat ?? '',
+      spk_role: spk.spk_role ?? '',
     };
 
+    console.log('=== BAST RENDER DATA ===');
+    console.log(renderData);
     return this.pdfService.generatePdf('bast', renderData);
   }
 }

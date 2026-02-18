@@ -9,62 +9,84 @@ import { PrismaService } from '../prisma/prisma.service';
 export class MitraService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * =====================
+  /* =====================================================
    * DASHBOARD SUMMARY (KETUA TIM)
-   * =====================
-   */
+   * ===================================================== */
   async getDashboardSummaryByUser(userId: string) {
-    const totalSpk = await this.prisma.spkDocument.count({
-      where: { created_by_user_id: userId },
-    });
+    const [totalRequest, totalItems, approved, pending, rejected] =
+      await Promise.all([
+        // Total request created by Ketua
+        this.prisma.spkRequest.count({
+          where: { created_by_user_id: userId },
+        }),
 
-    const spkPending = await this.prisma.spkDocument.count({
-      where: {
-        created_by_user_id: userId,
-        status: 'PENDING',
-      },
-    });
+        // Total kegiatan submitted
+        this.prisma.spkRequestItem.count({
+          where: {
+            spkRequest: {
+              created_by_user_id: userId,
+            },
+          },
+        }),
 
-    const spkApproved = await this.prisma.spkDocument.count({
-      where: {
-        created_by_user_id: userId,
-        status: 'APPROVED',
-      },
-    });
+        // Approved kegiatan
+        this.prisma.spkRequestItem.count({
+          where: {
+            status: 'APPROVED',
+            spkRequest: {
+              created_by_user_id: userId,
+            },
+          },
+        }),
 
-    const kegiatanUsed = await this.prisma.spkDocumentItem.findMany({
-      where: {
-        spkDocument: {
-          created_by_user_id: userId,
-        },
-      },
-      select: {
-        kegiatan_id: true,
-      },
-    });
+        // Pending kegiatan
+        this.prisma.spkRequestItem.count({
+          where: {
+            status: 'PENDING',
+            spkRequest: {
+              created_by_user_id: userId,
+            },
+          },
+        }),
 
-    const uniqueKegiatanCount = new Set(kegiatanUsed.map((k) => k.kegiatan_id))
-      .size;
+        // Rejected kegiatan
+        this.prisma.spkRequestItem.count({
+          where: {
+            status: 'REJECTED',
+            spkRequest: {
+              created_by_user_id: userId,
+            },
+          },
+        }),
+      ]);
 
     return {
-      totalSpk,
-      spkPending,
-      spkApproved,
-      kegiatanUsed: uniqueKegiatanCount,
+      totalRequest,
+      totalKegiatan: totalItems,
+      approved,
+      pending,
+      rejected,
     };
   }
 
-  /**
-   * =====================
-   * PEKERJAAN SAYA (KETUA TIM)
-   * =====================
-   */
+  /* =====================================================
+   * PEKERJAAN SAYA (ALOKASI FINAL)
+   * ===================================================== */
   async getMyAlokasiByUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { mitra_id: true },
+    });
+
+    if (!user?.mitra_id) {
+      return [];
+    }
+
     return this.prisma.spkDocumentItem.findMany({
       where: {
         spkDocument: {
-          created_by_user_id: userId,
+          mitra_id: user.mitra_id,
+          status: 'APPROVED',
         },
       },
       include: {
@@ -80,7 +102,6 @@ export class MitraService {
             status: true,
             tahun: true,
             bulan: true,
-            mitra_id: true,
           },
         },
       },
@@ -90,11 +111,9 @@ export class MitraService {
     });
   }
 
-  /**
-   * =====================
-   * DATA MITRA (ADMIN)
-   * =====================
-   */
+  /* =====================================================
+   * MITRA LIST
+   * ===================================================== */
   async findAll() {
     return this.prisma.mitra.findMany({
       orderBy: {
@@ -153,7 +172,6 @@ export class MitraService {
   async remove(id: number) {
     await this.findById(id);
 
-    // 🔒 Prevent deleting mitra already used in SPK
     const used = await this.prisma.spkDocument.count({
       where: { mitra_id: id },
     });
@@ -166,6 +184,61 @@ export class MitraService {
 
     return this.prisma.mitra.delete({
       where: { id },
+    });
+  }
+
+  /* =====================================================
+   * KEGIATAN LIST
+   * ===================================================== */
+  async getAllKegiatan() {
+    return this.prisma.kegiatan.findMany({
+      orderBy: {
+        nama_kegiatan: 'asc',
+      },
+    });
+  }
+
+  /* =====================================================
+   * MY REQUEST ITEMS (KETUA VIEW)
+   * ===================================================== */
+  async getMyRequestItems(userId: string) {
+    return this.prisma.spkRequestItem.findMany({
+      where: {
+        spkRequest: {
+          created_by_user_id: userId,
+        },
+      },
+      include: {
+        kegiatan: {
+          select: {
+            nama_kegiatan: true,
+            satuan: true,
+          },
+        },
+        spkRequest: {
+          select: {
+            id: true,
+            status: true,
+            created_at: true,
+            spkDocument: {
+              select: {
+                id: true,
+                nomor_spk: true,
+                tahun: true,
+                bulan: true,
+                mitra: {
+                  select: {
+                    nama_mitra: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
     });
   }
 }

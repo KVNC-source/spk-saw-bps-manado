@@ -1,14 +1,31 @@
 import instance from "./axios";
-// ^ adjust path if your axios instance is in lib/axios.ts
+
+/* ================================
+   TYPES
+================================ */
+
+export interface Mitra {
+  id: number;
+  nama_mitra: string;
+  alamat?: string;
+  no_hp?: string;
+  bank?: string;
+  no_rekening?: string;
+}
+
+/* ================================
+   API
+================================ */
 
 export const adminMitraApi = {
-  getAll: async () => {
-    const res = await instance.get("/admin/mitra");
+  getAll: async (): Promise<Mitra[]> => {
+    const res = await instance.get("/spk/mitra");
     return res.data;
   },
 
+  // Kalau belum ada backend-nya, jangan pakai ini dulu
   getById: async (id: number) => {
-    const res = await instance.get(`/admin/mitra/${id}`);
+    const res = await instance.get(`/spk/mitra/${id}`);
     return res.data;
   },
 
@@ -19,7 +36,7 @@ export const adminMitraApi = {
     bank?: string;
     no_rekening?: string;
   }) => {
-    const res = await instance.post("/admin/mitra", data);
+    const res = await instance.post("/spk/mitra", data);
     return res.data;
   },
 
@@ -33,12 +50,12 @@ export const adminMitraApi = {
       no_rekening?: string;
     },
   ) => {
-    const res = await instance.patch(`/admin/mitra/${id}`, data);
+    const res = await instance.patch(`/spk/mitra/${id}`, data);
     return res.data;
   },
 
   remove: async (id: number) => {
-    const res = await instance.delete(`/admin/mitra/${id}`);
+    const res = await instance.delete(`/spk/mitra/${id}`);
     return res.data;
   },
 };

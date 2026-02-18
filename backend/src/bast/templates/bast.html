@@ -95,7 +95,7 @@
   <body>
     <!-- ================= JUDUL ================= -->
     <p class="center bold">BERITA ACARA SERAH TERIMA PEKERJAAN</p>
-    <p class="center bold">TAHUN {{tahun}}</p>
+    <p class="center bold">TAHUN 2026</p>
     <p class="center bold">BPS KOTA MANADO</p>
     <p class="center bold">NOMOR: {{bastNomor}}</p>
 
@@ -159,9 +159,9 @@
     <!-- ================= ISI ================= -->
     <p>
       Berdasarkan Surat Perintah Kerja (SPK)/ Perjanjian Kerja Nomor
-      {{spkNomor}}, bersama ini <strong>PIHAK KEDUA</strong> telah menyerahkan
-      hasil pekerjaan sesuai dengan wilayah tugasnya di Kota Manado kepada
-      <strong>PIHAK PERTAMA</strong>, dengan ketentuan sebagai berikut:
+      SPK-{{spkNomor}}, bersama ini <strong>PIHAK KEDUA</strong> telah
+      menyerahkan hasil pekerjaan sesuai dengan wilayah tugasnya di Kota Manado
+      kepada <strong>PIHAK PERTAMA</strong>, dengan ketentuan sebagai berikut:
     </p>
 
     <table class="party-table">
@@ -194,7 +194,7 @@
           <td width="50%" class="bold">PIHAK PERTAMA</td>
         </tr>
         <tr>
-          <td>{{ spk_role }}</td>
+          <td>Petugas Pendataan Lapangan Kegiatan</td>
           <td>
             Pejabat Pembuat Komitmen<br />
             BPS Kota Manado
@@ -206,10 +206,7 @@
         </tr>
         <tr>
           <td><b>{{ nama_mitra }}</b></td>
-          <td>
-            <b>{{ nama_pejabat_bps }}</b><br />
-            NIP. {{ nip_pejabat_bps }}
-          </td>
+          <td><b>{{ nama_pejabat_bps }}</b><br /></td>
         </tr>
       </table>
     </div>

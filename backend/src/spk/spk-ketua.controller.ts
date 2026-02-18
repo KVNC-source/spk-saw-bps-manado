@@ -1,121 +1,117 @@
 import {
   Controller,
   Get,
-  Post,
-  Delete,
   Patch,
   Param,
   Body,
   Req,
+  Post,
+  Res,
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
+import type { Response } from 'express';
 
 import { SpkService } from './spk.service';
+import { SpkPdfService } from './spk-pdf.service';
+import { MitraService } from '../mitra/mitra.service';
 import { CreateManualSpkDto } from './dto/create-manual-spk.dto';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('ketua/spk')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('KETUA_TIM')
+@Roles(Role.KETUA_TIM)
 export class SpkKetuaController {
-  constructor(private readonly spkService: SpkService) {}
+  constructor(
+    private readonly spkService: SpkService,
+    private readonly spkPdfService: SpkPdfService,
+    private readonly mitraService: MitraService,
+  ) {}
 
-  /* ===============================
-   * CREATE SPK
-   * =============================== */
+  /* ================= CREATE REQUEST ================= */
+
   @Post()
-  create(@Body() dto: CreateManualSpkDto, @Req() req: any) {
+  create(
+    @Body() dto: CreateManualSpkDto,
+    @Req() req: { user: { id: string } },
+  ) {
     return this.spkService.createManualSpk(dto, req.user.id);
   }
 
-  /* ===============================
-   * DASHBOARD SUMMARY
-   * =============================== */
+  /* ================= DASHBOARD SUMMARY ================= */
+
   @Get('summary')
-  getSummary(@Req() req: any) {
-    return this.spkService.getDashboardSummaryByUser(req.user.id);
+  getSummary(@Req() req: { user: { id: string } }) {
+    return this.spkService.getKetuaSummary(req.user.id);
   }
 
-  /* ===============================
-   * MITRA LIST
-   * =============================== */
+  /* ================= SUPPORTING DATA ================= */
+
   @Get('mitra-list')
   getMitraList() {
-    return this.spkService.getAllMitra();
+    return this.mitraService.findAll();
   }
 
-  /* ===============================
-   * KEGIATAN LIST
-   * =============================== */
   @Get('kegiatan-list')
   getKegiatanList() {
-    return this.spkService.getAllKegiatan();
+    return this.mitraService.getAllKegiatan();
   }
 
-  /* ===============================
-   * LIST MY SPK
-   * =============================== */
+  @Get('my-items')
+  getMyRequestItems(@Req() req: { user: { id: string } }) {
+    return this.mitraService.getMyRequestItems(req.user.id);
+  }
+
+  /* ================= SPK LIST ================= */
+
   @Get()
-  findMySpk(@Req() req: any) {
+  findMySpk(@Req() req: { user: { id: string } }) {
     return this.spkService.getSpkByUser(req.user.id);
   }
 
-  /* ===============================
-   * DETAIL
-   * =============================== */
-  @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
-    return this.spkService.getSpkByIdWithAccessCheck(
-      id,
-      req.user.id,
-      'KETUA_TIM',
-    );
-  }
+  /* ================= CANCEL ================= */
 
-  /* ===============================
-   * ADD ITEM
-   * =============================== */
-  @Post(':id/items')
-  addItem(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: { kegiatan_id: number; volume: number },
-    @Req() req: any,
-  ) {
-    return this.spkService.addSpkItem(id, 'KETUA_TIM', body, req.user.id);
-  }
-
-  /* ===============================
-   * DELETE ITEM
-   * =============================== */
-  @Delete('items/:itemId')
-  deleteItem(@Param('itemId', ParseIntPipe) itemId: number, @Req() req: any) {
-    return this.spkService.deleteSpkItem(itemId, 'KETUA_TIM', req.user.id);
-  }
-
-  /* ===============================
-   * UPDATE LEGAL DATES
-   * =============================== */
-  @Patch(':id/dates')
-  updateDates(
-    @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      tanggal_perjanjian?: string;
-      tanggal_pembayaran?: string;
-    },
-  ) {
-    return this.spkService.updateLegalDates(id, body);
-  }
-
-  /* ===============================
-   * CANCEL (SOFT DELETE)
-   * =============================== */
   @Patch(':id/cancel')
-  cancel(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
+  cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { id: string } },
+  ) {
     return this.spkService.cancelSpk(id, req.user.id);
+  }
+
+  /* ================= DOWNLOAD PDF ================= */
+
+  @Get(':id/pdf')
+  async downloadSpkPdf(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { id: string } },
+    @Res() res: Response,
+  ) {
+    // Access validation
+    await this.spkService.getSpkPreviewForKetua(id, req.user.id);
+
+    const snapshot = await this.spkService.buildSpkPdfData(id);
+    const pdfBuffer = await this.spkPdfService.generateSpkPdf(snapshot);
+
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=SPK-${snapshot.nomor_spk}.pdf`,
+    });
+
+    res.send(pdfBuffer);
+  }
+
+  /* ================= DETAIL (PREVIEW) ================= */
+
+  @Get(':id')
+  findOne(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.spkService.getSpkPreviewForKetua(id, req.user.id);
   }
 }

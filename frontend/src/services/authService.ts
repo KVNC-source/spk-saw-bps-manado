@@ -6,7 +6,9 @@ interface LoginResponse {
   user: {
     id: string;
     username: string;
+    name: string; // 🔥 ADDED
     role: string;
+    mitra_id?: number | null;
   };
 }
 
@@ -24,11 +26,12 @@ export async function loginService(
   const mappedUser: AuthUser = {
     id: user.id,
     username: user.username,
+    name: user.name, // 🔥 NOW INCLUDED
     role: user.role.toUpperCase() as Role,
   };
 
   return {
-    accessToken: token, // 🔥 THIS IS THE FIX
+    accessToken: token,
     user: mappedUser,
   };
 }

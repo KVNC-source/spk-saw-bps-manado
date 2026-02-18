@@ -11,29 +11,19 @@ export class AuthService {
   ) {}
 
   async login(username: string, password: string) {
-    console.log('LOGIN PARAMS:', username, password);
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+    });
 
-    let user;
-    try {
-      user = await this.prisma.user.findUnique({
-        where: { username },
-      });
-      console.log('AFTER QUERY:', user);
-    } catch (err) {
-      console.error('🔥 PRISMA ERROR 🔥');
-      console.error(err);
-      throw err;
-    }
-
+    // 🔒 Do not reveal which part failed
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const valid = await bcrypt.compare(password, user.password);
-    console.log('PASSWORD CHECK:', valid);
 
     if (!valid) {
-      throw new UnauthorizedException('Invalid password');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     return {
@@ -51,7 +41,9 @@ export class AuthService {
       user: {
         id: user.id,
         username: user.username,
+        name: user.name, // 🔥 ADD THIS
         role: user.role,
+        mitra_id: user.mitra_id, // optional but recommended
       },
     };
   }

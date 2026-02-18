@@ -6,10 +6,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [
-    MitraController, // MITRA panel (/spk/mitra/*)
-    MitraAdminController, // ADMIN panel (/admin/mitra)
-  ],
+  controllers: [MitraController, MitraAdminController],
   providers: [MitraService],
+  exports: [MitraService], // ✅ ADD THIS LINE
 })
 export class MitraModule {}

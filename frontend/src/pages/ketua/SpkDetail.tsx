@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
-import type { AxiosError } from "axios";
 
 interface SpkItem {
   id: number;
@@ -9,137 +8,56 @@ interface SpkItem {
   volume: number;
   harga_satuan: number;
   nilai: number;
+  status?: "PENDING" | "APPROVED" | "REJECTED"; // 🔥 NEW
 }
 
 interface SpkDetail {
   id: number;
   nomor_spk: string;
-  status: string;
+  status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
   tanggal_mulai: string;
   tanggal_selesai: string;
-  tanggal_perjanjian?: string;
-  tanggal_pembayaran?: string;
   total_honorarium: number;
   kegiatan: SpkItem[];
-}
-
-interface Kegiatan {
-  id: number;
-  nama_kegiatan: string;
+  admin_note?: string | null;
 }
 
 export default function KetuaSpkDetail() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const [spk, setSpk] = useState<SpkDetail | null>(null);
-  const [kegiatanList, setKegiatanList] = useState<Kegiatan[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  const [newKegiatanId, setNewKegiatanId] = useState<number | "">("");
-  const [newVolume, setNewVolume] = useState<number>(1);
-
-  const isEditable = spk?.status === "PENDING" || spk?.status === "REJECTED";
-
-  /* =========================================
-     LOAD DATA
-  ========================================= */
-
-  const fetchData = async () => {
-    const [spkRes, kegiatanRes] = await Promise.all([
-      api.get(`/ketua/spk/${id}`),
-      api.get("/kegiatan"),
-    ]);
-
-    setSpk(spkRes.data);
-    setKegiatanList(kegiatanRes.data);
-  };
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchData();
-  }, [id]);
-
-  /* =========================================
-     ADD ITEM
-  ========================================= */
-
-  const handleAddItem = async () => {
-    if (!newKegiatanId) {
-      alert("Pilih kegiatan terlebih dahulu");
+    if (!id) {
+      navigate("/ketua/spk");
       return;
     }
 
+    fetchData(id);
+  }, [id]);
+
+  const fetchData = async (spkId: string) => {
     try {
       setLoading(true);
-
-      await api.post(`/ketua/spk/${id}/items`, {
-        kegiatan_id: newKegiatanId,
-        volume: newVolume,
-      });
-
-      setNewKegiatanId("");
-      setNewVolume(1);
-      await fetchData();
-    } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-
-      alert(error.response?.data?.message || "Gagal menambah item");
+      const res = await api.get(`/ketua/spk/${spkId}`);
+      setSpk(res.data);
+    } catch {
+      alert("Gagal mengambil data SPK");
+      navigate("/ketua/spk");
     } finally {
       setLoading(false);
     }
   };
 
-  /* =========================================
-     DELETE ITEM
-  ========================================= */
-
-  const handleDeleteItem = async (itemId: number) => {
-    if (!confirm("Hapus item ini?")) return;
-
-    try {
-      await api.delete(`/ketua/spk/items/${itemId}`);
-      await fetchData();
-    } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-
-      alert(error.response?.data?.message || "Gagal menghapus item");
-    }
-  };
-
-  /* =========================================
-     UPDATE DATES
-  ========================================= */
-
-  const handleUpdateDates = async () => {
-    try {
-      await api.patch(`/ketua/spk/${id}/dates`, {
-        tanggal_perjanjian: spk?.tanggal_perjanjian,
-        tanggal_pembayaran: spk?.tanggal_pembayaran,
-      });
-
-      alert("Tanggal berhasil diperbarui");
-      await fetchData();
-    } catch (err) {
-      const error = err as AxiosError<{ message?: string }>;
-
-      alert(error.response?.data?.message || "Gagal update tanggal");
-    }
-  };
-
-  /* =========================================
-     CANCEL
-  ========================================= */
-
   const handleCancel = async () => {
+    if (!id) return;
     if (!confirm("Batalkan SPK ini?")) return;
 
     await api.patch(`/ketua/spk/${id}/cancel`);
     navigate("/ketua/spk");
   };
-
-  /* =========================================
-     STATUS BADGE
-  ========================================= */
 
   const statusColor: Record<string, string> = {
     PENDING: "bg-yellow-400",
@@ -148,129 +66,143 @@ export default function KetuaSpkDetail() {
     CANCELLED: "bg-gray-500",
   };
 
-  if (!spk) return <div className="p-6">Loading...</div>;
+  if (loading || !spk) {
+    return <div className="p-6">Loading...</div>;
+  }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">SPK #{spk.nomor_spk}</h1>
-
-        <span
-          className={`px-3 py-1 text-white rounded ${statusColor[spk.status]}`}
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      {/* BACK + TITLE */}
+      <div>
+        <button
+          onClick={() => navigate("/ketua/spk")}
+          className="text-sm text-gray-500 hover:underline"
         >
-          {spk.status}
-        </span>
+          ← Detail SPK
+        </button>
+        <p className="text-xs text-gray-400 mt-1">Informasi lengkap SPK</p>
       </div>
 
-      {/* ITEMS */}
-      <div className="border rounded p-4">
-        <h2 className="font-semibold mb-4">Daftar Kegiatan</h2>
+      {/* REJECTED ALERT */}
+      {spk.status === "REJECTED" && spk.admin_note && (
+        <div className="border border-red-300 bg-red-50 text-red-700 rounded-lg p-4">
+          <div className="font-semibold">⚠ SPK Ditolak</div>
+          <div className="text-sm mt-1">Catatan Admin: {spk.admin_note}</div>
+        </div>
+      )}
 
-        {spk.kegiatan.map((item) => (
-          <div
-            key={item.id}
-            className="flex justify-between items-center border-b py-2"
+      {/* MAIN SPK CARD */}
+      <div className="bg-white border rounded-lg p-6 shadow-sm">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-xl font-semibold">{spk.nomor_spk}</h2>
+            <p className="text-sm text-gray-500">
+              Periode: {new Date(spk.tanggal_mulai).toLocaleDateString("id-ID")}{" "}
+              - {new Date(spk.tanggal_selesai).toLocaleDateString("id-ID")}
+            </p>
+          </div>
+
+          <span
+            className={`px-3 py-1 text-xs rounded-full text-white ${
+              statusColor[spk.status]
+            }`}
           >
+            {spk.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-6 mt-6 text-sm">
+          <div>
+            <p className="text-gray-500">Tanggal Dibuat</p>
+            <p className="font-medium">
+              {new Date(spk.tanggal_mulai).toLocaleDateString("id-ID")}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-gray-500">Total Nilai</p>
+            <p className="font-semibold text-red-600">
+              Rp {Number(spk.total_honorarium).toLocaleString("id-ID")}
+            </p>
+          </div>
+
+          {spk.status === "REJECTED" && (
             <div>
-              {item.nama_kegiatan} — {item.volume} x Rp{" "}
-              {item.harga_satuan.toLocaleString("id-ID")}
+              <p className="text-gray-500">Tanggal Ditolak</p>
+              <p className="font-medium">
+                {new Date().toLocaleDateString("id-ID")}
+              </p>
             </div>
+          )}
+        </div>
+      </div>
 
-            {isEditable && (
-              <button
-                onClick={() => handleDeleteItem(item.id)}
-                className="text-red-600"
-              >
-                Hapus
-              </button>
-            )}
+      {/* DETAIL SPK */}
+      <div className="bg-white border rounded-lg p-6 shadow-sm">
+        <h3 className="font-semibold mb-4">Detail SPK</h3>
+
+        <div className="grid grid-cols-2 gap-6 text-sm">
+          <div>
+            <p className="text-gray-500">Status</p>
+            <p className="font-medium">{spk.status}</p>
           </div>
-        ))}
 
-        {/* ADD ITEM */}
-        {isEditable && (
-          <div className="grid grid-cols-3 gap-4 mt-4">
-            <select
-              value={newKegiatanId}
-              onChange={(e) => setNewKegiatanId(Number(e.target.value))}
-              className="border p-2 rounded"
-            >
-              <option value="">Pilih Kegiatan</option>
-              {kegiatanList.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.nama_kegiatan}
-                </option>
+          <div>
+            <p className="text-gray-500">Jumlah Kegiatan</p>
+            <p className="font-medium">{spk.kegiatan.length}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* DAFTAR BARANG / JASA */}
+      <div className="bg-white border rounded-lg p-6 shadow-sm">
+        <h3 className="font-semibold mb-4">Daftar Barang/Jasa</h3>
+
+        {spk.kegiatan.length === 0 ? (
+          <div className="text-gray-500 text-sm">Tidak ada kegiatan</div>
+        ) : (
+          <table className="w-full text-sm border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-600">
+                <th className="text-left p-3">Item</th>
+                <th className="text-left p-3">Qty</th>
+                <th className="text-left p-3">Harga Satuan</th>
+                <th className="text-left p-3">Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {spk.kegiatan.map((item) => (
+                <tr key={item.id} className="border-t">
+                  <td className="p-3">{item.nama_kegiatan}</td>
+
+                  <td className="p-3">{item.volume}</td>
+
+                  <td className="p-3">
+                    Rp {item.harga_satuan.toLocaleString("id-ID")}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    Rp {item.nilai.toLocaleString("id-ID")}
+                  </td>
+                </tr>
               ))}
-            </select>
-
-            <input
-              type="number"
-              min={1}
-              value={newVolume}
-              onChange={(e) => setNewVolume(Number(e.target.value))}
-              className="border p-2 rounded"
-            />
-
-            <button
-              onClick={handleAddItem}
-              disabled={loading}
-              className="bg-blue-600 text-white rounded"
-            >
-              Tambah
-            </button>
-          </div>
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* TOTAL */}
-      <div className="text-right font-bold text-lg">
-        Total: Rp {spk.total_honorarium.toLocaleString("id-ID")}
+      <div className="text-right text-lg font-bold">
+        Total: Rp {Number(spk.total_honorarium).toLocaleString("id-ID")}
       </div>
-
-      {/* LEGAL DATES */}
-      {isEditable && (
-        <div className="border rounded p-4 space-y-4">
-          <h2 className="font-semibold">Tanggal Legal</h2>
-
-          <input
-            type="date"
-            value={spk.tanggal_perjanjian || ""}
-            onChange={(e) =>
-              setSpk({
-                ...spk,
-                tanggal_perjanjian: e.target.value,
-              })
-            }
-            className="border p-2 rounded w-full"
-          />
-
-          <input
-            type="date"
-            value={spk.tanggal_pembayaran || ""}
-            onChange={(e) =>
-              setSpk({
-                ...spk,
-                tanggal_pembayaran: e.target.value,
-              })
-            }
-            className="border p-2 rounded w-full"
-          />
-
-          <button
-            onClick={handleUpdateDates}
-            className="bg-green-600 text-white px-4 py-2 rounded"
-          >
-            Simpan Tanggal
-          </button>
-        </div>
-      )}
 
       {/* CANCEL BUTTON */}
       {spk.status === "PENDING" && (
         <div className="flex justify-end">
           <button
             onClick={handleCancel}
-            className="bg-red-600 text-white px-4 py-2 rounded"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded"
           >
             Batalkan SPK
           </button>

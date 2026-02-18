@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
 import { AxiosError } from "axios";
 import api from "../../lib/axios";
+
+/* ================= TYPES ================= */
 
 interface KegiatanFormData {
   kode_kegiatan: string;
@@ -24,6 +27,8 @@ interface ApiErrorResponse {
   message?: string;
 }
 
+/* ================= COMPONENT ================= */
+
 export default function KegiatanForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -41,18 +46,19 @@ export default function KegiatanForm() {
 
   const [mataAnggaranList, setMataAnggaranList] = useState<MataAnggaran[]>([]);
   const [loading, setLoading] = useState(false);
+  const [notification, setNotification] = useState<string | null>(null);
 
   /* ================= FETCH MATA ANGGARAN ================= */
   useEffect(() => {
     api
       .get<MataAnggaran[]>("/admin/mata-anggaran")
       .then((res) => setMataAnggaranList(res.data))
-      .catch(() => alert("Gagal memuat data mata anggaran"));
+      .catch(() => {});
   }, []);
 
-  /* ================= FETCH (EDIT MODE) ================= */
+  /* ================= FETCH EDIT DATA ================= */
   useEffect(() => {
-    if (!isEdit) return;
+    if (!isEdit || !id) return;
 
     api
       .get(`/admin/kegiatan/${id}`)
@@ -67,10 +73,7 @@ export default function KegiatanForm() {
           mata_anggaran_id: res.data.mata_anggaran_id,
         });
       })
-      .catch(() => {
-        alert("Gagal memuat data kegiatan");
-        navigate("/admin/dashboard/kegiatan");
-      });
+      .catch(() => navigate("/admin/kegiatan"));
   }, [id, isEdit, navigate]);
 
   /* ================= HANDLE CHANGE ================= */
@@ -102,7 +105,11 @@ export default function KegiatanForm() {
         await api.post("/admin/kegiatan", form);
       }
 
-      navigate("/admin/dashboard/kegiatan");
+      setNotification("Data kegiatan berhasil disimpan ✔");
+
+      setTimeout(() => {
+        navigate("/admin/kegiatan");
+      }, 1200);
     } catch (err: unknown) {
       let message = "Gagal menyimpan kegiatan";
 
@@ -111,137 +118,201 @@ export default function KegiatanForm() {
         if (data?.message) message = data.message;
       }
 
-      alert(message);
+      setNotification(message);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= UI ================= */
+
   return (
-    <div className="dashboard-container max-w-2xl">
-      <h1 className="dashboard-title mb-4">
-        {isEdit ? "Edit Kegiatan" : "Tambah Kegiatan"}
-      </h1>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="dashboard-container max-w-5xl mx-auto"
+    >
+      {/* HEADER */}
+      <div className="mb-6">
+        <h1 className="dashboard-title">
+          {isEdit ? "Edit Kegiatan" : "Tambah Kegiatan"}
+        </h1>
+        <p className="dashboard-subtitle">
+          Lengkapi informasi kegiatan yang akan digunakan dalam SPK
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* KODE KEGIATAN */}
-        <div>
-          <label className="form-label">Kode Kegiatan</label>
-          <input
-            name="kode_kegiatan"
-            placeholder="Contoh: KGT-2026-01"
-            value={form.kode_kegiatan}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          />
-        </div>
+      {/* NOTIFICATION */}
+      {notification && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4 px-4 py-3 rounded-lg bg-blue-50 text-blue-700 text-sm"
+        >
+          {notification}
+        </motion.div>
+      )}
 
-        {/* NAMA */}
-        <div>
-          <label className="form-label">Nama Kegiatan</label>
-          <input
-            name="nama_kegiatan"
-            value={form.nama_kegiatan}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          />
-        </div>
+      {/* CARD */}
+      <motion.div
+        initial={{ opacity: 0, y: 25 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.4 }}
+        className="bg-white rounded-xl shadow-sm p-6"
+      >
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* 2 COLUMN GRID — EXACT MATCH */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* LEFT COLUMN */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-4"
+            >
+              <h3 className="font-semibold text-gray-700">
+                Informasi Kegiatan
+              </h3>
 
-        {/* JENIS */}
-        <div>
-          <label className="form-label">Jenis Kegiatan</label>
-          <input
-            name="jenis_kegiatan"
-            value={form.jenis_kegiatan}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          />
-        </div>
+              <Field label="Kode Kegiatan *">
+                <input
+                  name="kode_kegiatan"
+                  value={form.kode_kegiatan}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                />
+              </Field>
 
-        {/* TAHUN */}
-        <div>
-          <label className="form-label">Tahun</label>
-          <input
-            type="number"
-            name="tahun"
-            value={form.tahun}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          />
-        </div>
+              <Field label="Nama Kegiatan *">
+                <input
+                  name="nama_kegiatan"
+                  value={form.nama_kegiatan}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                />
+              </Field>
 
-        {/* SATUAN */}
-        <div>
-          <label className="form-label">Satuan (opsional)</label>
-          <input
-            name="satuan"
-            value={form.satuan}
-            onChange={handleChange}
-            className="gov-input"
-          />
-        </div>
+              <Field label="Jenis Kegiatan *">
+                <input
+                  name="jenis_kegiatan"
+                  value={form.jenis_kegiatan}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                />
+              </Field>
 
-        {/* TARIF */}
-        <div>
-          <label className="form-label">Tarif per Satuan (Rp)</label>
-          <input
-            type="number"
-            name="tarif_per_satuan"
-            value={form.tarif_per_satuan}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          />
-        </div>
+              <Field label="Tahun *">
+                <input
+                  type="number"
+                  name="tahun"
+                  value={form.tahun}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                />
+              </Field>
+            </motion.div>
 
-        {/* ✅ MATA ANGGARAN DROPDOWN */}
-        <div>
-          <label className="form-label">Mata Anggaran</label>
+            {/* RIGHT COLUMN */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+              className="space-y-4"
+            >
+              <h3 className="font-semibold text-gray-700">
+                Informasi Anggaran
+              </h3>
 
-          <select
-            name="mata_anggaran_id"
-            value={form.mata_anggaran_id}
-            onChange={handleChange}
-            required
-            className="gov-input"
-          >
-            <option value={0}>-- Pilih Mata Anggaran --</option>
+              <Field label="Satuan">
+                <input
+                  name="satuan"
+                  value={form.satuan}
+                  onChange={handleChange}
+                  className="gov-input"
+                />
+              </Field>
 
-            {mataAnggaranList.map((ma) => (
-              <option key={ma.id} value={ma.id}>
-                {ma.kode_anggaran} — {ma.nama_anggaran} ({ma.tahun})
-              </option>
-            ))}
-          </select>
+              <Field label="Tarif per Satuan (Rp) *">
+                <input
+                  type="number"
+                  name="tarif_per_satuan"
+                  value={form.tarif_per_satuan}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                />
+              </Field>
 
-          <small className="text-muted">
-            Pilih mata anggaran yang sesuai dengan kegiatan
-          </small>
-        </div>
+              <Field label="Mata Anggaran *">
+                <select
+                  name="mata_anggaran_id"
+                  value={form.mata_anggaran_id}
+                  onChange={handleChange}
+                  required
+                  className="gov-input"
+                >
+                  <option value={0}>-- Pilih Mata Anggaran --</option>
+                  {mataAnggaranList.map((ma) => (
+                    <option key={ma.id} value={ma.id}>
+                      {ma.kode_anggaran} — {ma.nama_anggaran} ({ma.tahun})
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-        {/* ACTIONS */}
-        <div className="flex gap-2 pt-2">
-          <button
-            type="submit"
-            disabled={loading}
-            className="gov-btn gov-btn-primary"
-          >
-            {loading ? "Menyimpan..." : "Simpan"}
-          </button>
+              <div className="bg-blue-50 p-3 rounded-lg text-xs text-blue-700">
+                Pastikan mata anggaran dan tarif sesuai dengan dokumen DIPA.
+              </div>
+            </motion.div>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => navigate("/admin/dashboard/kegiatan")}
-            className="gov-btn gov-btn-secondary"
-          >
-            Batal
-          </button>
-        </div>
-      </form>
+          {/* BUTTONS — EXACT MATCH */}
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              type="button"
+              onClick={() => navigate("/admin/kegiatan")}
+              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg"
+            >
+              Batal
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              type="submit"
+              disabled={loading}
+              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+            >
+              {loading ? "Menyimpan..." : "Simpan Kegiatan"}
+            </motion.button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ================= FIELD WRAPPER ================= */
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <label className="block text-xs text-gray-600 mb-1">{label}</label>
+      {children}
     </div>
   );
 }

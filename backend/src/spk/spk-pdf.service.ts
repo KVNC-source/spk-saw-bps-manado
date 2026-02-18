@@ -1,30 +1,52 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import * as puppeteer from 'puppeteer';
-import { SpkService } from './spk.service';
 import { readFileSync } from 'fs';
 import * as path from 'path';
 
 import { renderHtml } from './utils/render-html';
 import { renderLampiranRows } from './utils/render-lampiran';
 
+export interface SpkPdfSnapshot {
+  nomor_spk: string | null;
+  spk_kegiatan: string;
+  tahun_spk: number;
+
+  tanggal_perjanjian: string;
+  tanggal_pembayaran: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+
+  nama_pejabat_bps: string;
+  alamat_bps: string;
+
+  nama_mitra: string;
+  alamat_mitra: string;
+
+  total_honorarium: string;
+  terbilang: string;
+
+  lampiran_rows: {
+    no: number;
+    uraian_tugas: string;
+    jangka_waktu: string;
+    volume: number;
+    satuan: string;
+    harga_satuan: number;
+    nilai: number;
+    beban_anggaran: string;
+  }[];
+
+  is_bast?: boolean;
+}
+
 @Injectable()
 export class SpkPdfService {
-  constructor(private readonly spkService: SpkService) {}
-
-  async generateSpkPdf(spkId: number): Promise<Buffer> {
+  async generateSpkPdf(data: SpkPdfSnapshot): Promise<Buffer> {
     try {
-      /* ===============================
-       * 1️⃣ BUILD SNAPSHOT DATA
-       * =============================== */
-      const data = await this.spkService.buildSpkPdfData(spkId);
-
       if (!data) {
         throw new Error('SPK snapshot data not found');
       }
 
-      /* ===============================
-       * 2️⃣ LOAD HTML TEMPLATE
-       * =============================== */
       const templatePath = path.join(
         process.cwd(),
         'src',
@@ -35,22 +57,13 @@ export class SpkPdfService {
 
       const templateSource = readFileSync(templatePath, 'utf-8');
 
-      /* ===============================
-       * 3️⃣ BUILD LAMPIRAN ROWS
-       * =============================== */
       const lampiranRowsHtml = renderLampiranRows(data.lampiran_rows);
 
-      /* ===============================
-       * 4️⃣ MERGE DATA INTO TEMPLATE
-       * =============================== */
       const html = renderHtml(templateSource, {
         ...data,
         lampiran_table_rows: lampiranRowsHtml,
       });
 
-      /* ===============================
-       * 5️⃣ RENDER PDF
-       * =============================== */
       const browser = await puppeteer.launch({
         headless: true,
         args: [
