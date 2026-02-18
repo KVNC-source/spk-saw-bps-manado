@@ -33,13 +33,11 @@ The system pulls real, approved workload data from the SIBEMI system and applies
 
 ### Criteria & Weighting
 
-Only workload data with status **APPROVED** is included in the calculation.
-
-| Criterion        | Description            | Weight | Type    |
-| :--------------- | :--------------------- | :----: | :------ |
-| `totalVolume`    | Total workload volume  |  0.3   | Benefit |
-| `totalNilai`     | Total honorarium value |  0.5   | Benefit |
-| `jumlahKegiatan` | Number of activities   |  0.2   | Benefit |
+| Criterion      | Description                              | Weight | Type    |
+| -------------- | ---------------------------------------- | ------ | ------- |
+| ketepatanWaktu | Ketepatan waktu dalam penyelesaian tugas | 0.3    | Benefit |
+| kualitas       | Kualitas hasil pekerjaan                 | 0.4    | Benefit |
+| komunikasi     | Kemampuan komunikasi dan koordinasi      | 0.3    | Benefit |
 
 ### SAW Output
 
