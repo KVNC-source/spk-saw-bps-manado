@@ -25,7 +25,7 @@ export class BastPdfService {
   ): Promise<Buffer> {
     const templatePath = path.join(
       process.cwd(),
-      'src',
+      'dist',
       'bast',
       'templates',
       `${templateName}.html`,
@@ -47,8 +47,13 @@ export class BastPdfService {
     }
 
     const browser = await puppeteer.launch({
-      headless: true, // ✅ FIX
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+      ],
     });
 
     try {

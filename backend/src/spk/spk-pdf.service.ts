@@ -49,7 +49,7 @@ export class SpkPdfService {
 
       const templatePath = path.join(
         process.cwd(),
-        'src',
+        'dist',
         'spk',
         'templates',
         'spk.html',
