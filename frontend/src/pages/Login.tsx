@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 
+import bgImage from "../assets/IMG_2395.jpg";
+
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -34,7 +36,7 @@ export default function Login() {
       {/* ================= LEFT SIDE ================= */}
       <div className="hidden md:flex w-1/2 relative bg-blue-900 text-white">
         <img
-          src="/manado.jpg" // 🔥 put your background image in public folder
+          src={bgImage}
           alt="Manado"
           className="absolute inset-0 w-full h-full object-cover opacity-40"
         />
@@ -58,7 +60,7 @@ export default function Login() {
           {/* Logo */}
           <div className="text-center">
             <img
-              src="/bps-logo.png" // 🔥 put BPS logo in public folder
+              src="/Logo BPS - Original.png" // 🔥 put BPS logo in public folder
               alt="BPS"
               className="h-14 mx-auto mb-2"
             />

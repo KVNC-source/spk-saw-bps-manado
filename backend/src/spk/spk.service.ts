@@ -179,6 +179,20 @@ export class SpkService {
     });
   }
 
+  private async rebuildSpkTotal(tx: Prisma.TransactionClient, spkId: number) {
+    const items = await tx.spkDocumentItem.aggregate({
+      where: { spk_document_id: spkId },
+      _sum: { nilai: true },
+    });
+
+    await tx.spkDocument.update({
+      where: { id: spkId },
+      data: {
+        total_honorarium: Number(items._sum.nilai ?? 0),
+      },
+    });
+  }
+
   /* =====================================================
    * CREATE SPK (SNAPSHOT)
    * ===================================================== */
@@ -415,42 +429,37 @@ export class SpkService {
         mitra: {
           select: { nama_mitra: true },
         },
+        items: {
+          select: {
+            nilai: true,
+          },
+        },
       },
       orderBy: {
         created_at: 'desc',
       },
     });
 
-    return Promise.all(
-      data.map(async (spk) => {
-        let officialNumber: string | null = null;
+    return data.map((spk) => {
+      const recalculatedTotal = spk.items.reduce(
+        (sum, item) => sum + Number(item.nilai ?? 0),
+        0,
+      );
 
-        if (spk.status === 'APPROVED') {
-          const alokasi = await this.prisma.alokasiMitra.findUnique({
-            where: { spk_document_id: spk.id },
-          });
-
-          officialNumber = alokasi?.nomor_spk ?? null;
-        }
-
-        return {
-          id: spk.id,
-          tahun: spk.tahun,
-          bulan: spk.bulan,
-          status: spk.status,
-          total_honorarium: spk.total_honorarium,
-          tanggal_pembayaran: spk.tanggal_pembayaran,
-          created_by_user_name: spk.created_by_user_name,
-          mitra: {
-            nama_mitra: spk.mitra.nama_mitra,
-          },
-          nomor_spk:
-            spk.status === 'APPROVED' && officialNumber
-              ? officialNumber
-              : spk.nomor_spk,
-        };
-      }),
-    );
+      return {
+        id: spk.id,
+        tahun: spk.tahun,
+        bulan: spk.bulan,
+        status: spk.status,
+        total_honorarium: recalculatedTotal,
+        tanggal_pembayaran: spk.tanggal_pembayaran,
+        created_by_user_name: spk.created_by_user_name,
+        mitra: {
+          nama_mitra: spk.mitra.nama_mitra,
+        },
+        nomor_spk: spk.nomor_spk,
+      };
+    });
   }
 
   private formatTanggalSingkat(d: Date): string {
@@ -596,8 +605,8 @@ export class SpkService {
       throw new BadRequestException('Tanggal mulai dan selesai wajib diisi');
     }
 
-    const tanggalMulai = new Date(`${data.tanggal_mulai}T00:00:00`);
-    const tanggalSelesai = new Date(`${data.tanggal_selesai}T00:00:00`);
+    const tanggalMulai = new Date(`${data.tanggal_mulai}T12:00:00`);
+    const tanggalSelesai = new Date(`${data.tanggal_selesai}T12:00:00`);
 
     if (tanggalSelesai < tanggalMulai) {
       throw new BadRequestException(
@@ -607,6 +616,22 @@ export class SpkService {
 
     const tahun = tanggalMulai.getFullYear();
     const bulan = tanggalMulai.getMonth() + 1;
+
+    // 🔥 BLOCK IF APPROVED SPK ALREADY EXISTS
+    const approvedSpk = await this.prisma.spkDocument.findFirst({
+      where: {
+        mitra_id: data.mitra_id,
+        bulan,
+        tahun,
+        status: 'APPROVED',
+      },
+    });
+
+    if (approvedSpk) {
+      throw new BadRequestException(
+        'SPK untuk mitra ini pada periode tersebut sudah disetujui.',
+      );
+    }
 
     return this.prisma.$transaction(async (tx) => {
       /* ================= USER CHECK ================= */
@@ -689,23 +714,36 @@ export class SpkService {
 
       // ================= ADMIN FLOW =================
       if (user.role === 'ADMIN') {
+        let total = 0;
+
         for (const item of data.kegiatan) {
           const kegiatan = kegiatanList.find((k) => k.id === item.kegiatan_id)!;
 
           const tarif = kegiatan.tarif_per_satuan ?? 0;
+          const nilai = item.volume * tarif;
+
+          total += nilai;
 
           await tx.spkDocumentItem.create({
             data: {
               spk_document_id: masterSpk.id,
               kegiatan_id: kegiatan.id,
               mata_anggaran_id: kegiatan.mata_anggaran_id,
-              jangka_waktu: '-',
+              jangka_waktu: this.formatTanggalRange(
+                tanggalMulai,
+                tanggalSelesai,
+              ),
               volume: item.volume,
               harga_satuan: tarif,
-              nilai: item.volume * tarif,
+              nilai,
             },
           });
         }
+
+        // 🔥 UPDATE MASTER TOTAL
+        await this.rebuildSpkTotal(tx, masterSpk.id);
+
+        await this.rebuildSpkKegiatan(tx, masterSpk.id);
 
         return {
           alreadyExists: !isNewSpk,
@@ -858,14 +896,7 @@ export class SpkService {
         },
       });
 
-      await tx.spkDocument.update({
-        where: { id: spkId },
-        data: {
-          total_honorarium: {
-            increment: nilai,
-          },
-        },
-      });
+      await this.rebuildSpkTotal(tx, spkId);
 
       await this.rebuildSpkKegiatan(tx, spkId);
     });
@@ -919,14 +950,7 @@ export class SpkService {
         where: { id: itemId },
       });
 
-      await tx.spkDocument.update({
-        where: { id: item.spk_document_id },
-        data: {
-          total_honorarium: {
-            decrement: item.nilai,
-          },
-        },
-      });
+      await this.rebuildSpkTotal(tx, item.spk_document_id);
 
       await this.rebuildSpkKegiatan(tx, item.spk_document_id);
     });
@@ -1243,7 +1267,15 @@ export class SpkService {
           status,
         },
       });
+      /* 🔥 ADD THIS RIGHT HERE */
+      if (status === 'APPROVED') {
+        await this.rebuildSpkTotal(tx, requestItem.spkRequest.spk_document_id);
 
+        await this.rebuildSpkKegiatan(
+          tx,
+          requestItem.spkRequest.spk_document_id,
+        );
+      }
       /* ================= UPDATE REQUEST HEADER ================= */
 
       await tx.spkRequest.update({
@@ -1321,6 +1353,7 @@ export class SpkService {
           status: 'APPROVED',
           approved_at: new Date(),
           approved_by: adminName,
+          total_honorarium: total,
         },
       });
 
@@ -1767,10 +1800,8 @@ export class SpkService {
       throw new NotFoundException('SPK tidak ditemukan');
     }
 
-    // 🔥 FORCE LOCAL DATE (NO TIMEZONE SHIFT)
-    const tanggalMulai = new Date(body.tanggal_mulai);
-
-    const tanggalSelesai = new Date(body.tanggal_selesai);
+    const tanggalMulai = new Date(`${body.tanggal_mulai}T12:00:00`);
+    const tanggalSelesai = new Date(`${body.tanggal_selesai}T12:00:00`);
 
     if (tanggalSelesai < tanggalMulai) {
       throw new BadRequestException(
@@ -1778,12 +1809,25 @@ export class SpkService {
       );
     }
 
-    return this.prisma.spkDocument.update({
-      where: { id },
-      data: {
-        tanggal_mulai: tanggalMulai,
-        tanggal_selesai: tanggalSelesai,
-      },
+    const jangkaWaktu = this.formatTanggalRange(tanggalMulai, tanggalSelesai);
+
+    return this.prisma.$transaction(async (tx) => {
+      // 1️⃣ update master
+      await tx.spkDocument.update({
+        where: { id },
+        data: {
+          tanggal_mulai: tanggalMulai,
+          tanggal_selesai: tanggalSelesai,
+        },
+      });
+
+      // 2️⃣ update semua item
+      await tx.spkDocumentItem.updateMany({
+        where: { spk_document_id: id },
+        data: {
+          jangka_waktu: jangkaWaktu,
+        },
+      });
     });
   }
 }

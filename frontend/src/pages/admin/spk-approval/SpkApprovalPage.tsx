@@ -3,6 +3,7 @@ import type { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "@/lib/axios";
+import { FileText, Clock, CheckCircle, XCircle, Ban } from "lucide-react";
 
 /* ================= TYPES ================= */
 
@@ -67,10 +68,33 @@ export default function SpkApprovalPage() {
 
       {/* KPI CARDS */}
       <div className="grid grid-cols-4 gap-6">
-        <StatCard title="Total SPK" value={total} color="blue" />
-        <StatCard title="Pending" value={pending} color="yellow" />
-        <StatCard title="Approved" value={approved} color="green" />
-        <StatCard title="Rejected" value={rejected} color="red" />
+        <StatCard
+          title="Total SPK"
+          value={total}
+          color="blue"
+          icon={<FileText size={20} />}
+        />
+
+        <StatCard
+          title="Pending"
+          value={pending}
+          color="yellow"
+          icon={<Clock size={20} />}
+        />
+
+        <StatCard
+          title="Approved"
+          value={approved}
+          color="green"
+          icon={<CheckCircle size={20} />}
+        />
+
+        <StatCard
+          title="Rejected"
+          value={rejected}
+          color="red"
+          icon={<XCircle size={20} />}
+        />
       </div>
 
       {/* CARD GRID */}
@@ -140,10 +164,12 @@ function StatCard({
   title,
   value,
   color,
+  icon,
 }: {
   title: string;
   value: number;
   color: "blue" | "yellow" | "green" | "red";
+  icon: React.ReactNode;
 }) {
   const colors: Record<string, string> = {
     blue: "bg-blue-100 text-blue-700",
@@ -158,10 +184,11 @@ function StatCard({
         <p className="text-xs text-gray-500">{title}</p>
         <p className="text-xl font-bold text-gray-800">{value}</p>
       </div>
+
       <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold ${colors[color]}`}
+        className={`w-10 h-10 rounded-lg flex items-center justify-center ${colors[color]}`}
       >
-        ●
+        {icon}
       </div>
     </div>
   );
@@ -170,22 +197,37 @@ function StatCard({
 /* ================= STATUS BADGE ================= */
 
 function StatusBadge({ status }: { status: SpkStatus }) {
-  const base = "px-3 py-1 text-xs rounded-full font-medium";
+  const base =
+    "inline-flex items-center gap-1 px-3 py-1 text-xs rounded-full font-medium";
 
   if (status === "APPROVED")
     return (
-      <span className={`${base} bg-green-100 text-green-700`}>Approved</span>
+      <span className={`${base} bg-green-100 text-green-700`}>
+        <CheckCircle size={14} />
+        Approved
+      </span>
     );
 
   if (status === "REJECTED")
-    return <span className={`${base} bg-red-100 text-red-600`}>Rejected</span>;
+    return (
+      <span className={`${base} bg-red-100 text-red-600`}>
+        <XCircle size={14} />
+        Rejected
+      </span>
+    );
 
   if (status === "CANCELLED")
     return (
-      <span className={`${base} bg-gray-200 text-gray-600`}>Cancelled</span>
+      <span className={`${base} bg-gray-200 text-gray-600`}>
+        <Ban size={14} />
+        Cancelled
+      </span>
     );
 
   return (
-    <span className={`${base} bg-yellow-100 text-yellow-700`}>Pending</span>
+    <span className={`${base} bg-yellow-100 text-yellow-700`}>
+      <Clock size={14} />
+      Pending
+    </span>
   );
 }

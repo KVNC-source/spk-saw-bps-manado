@@ -54,10 +54,12 @@ export default function AdminSidebar() {
     <aside className="w-64 bg-[#0f4c81] text-white min-h-screen flex flex-col shadow-lg">
       {/* HEADER */}
       <div className="px-6 py-6 border-b border-white/10">
-        <h1 className="text-lg font-bold tracking-wide">
-          BADAN PUSAT STATISTIK
-        </h1>
-        <p className="text-xs text-white/70 mt-1">Sistem SPK & BAST</p>
+        <img
+          src="/bps-logo.png"
+          alt="Badan Pusat Statistik"
+          className="h-10 object-contain"
+        />
+        <p className="text-xs text-white/70 mt-2">Sistem SPK & BAST</p>
       </div>
 
       {/* PROFILE */}

@@ -20,9 +20,11 @@ export default function KetuaSidebar() {
     <aside className="w-64 bg-[#0f4c81] text-white flex flex-col min-h-screen shadow-lg">
       {/* HEADER */}
       <div className="px-6 py-6 border-b border-white/10">
-        <h1 className="text-lg font-bold tracking-wide">
-          BADAN PUSAT STATISTIK
-        </h1>
+        <img
+          src="/bps-logo.png"
+          alt="Badan Pusat Statistik"
+          className="h-10 object-contain"
+        />
         <p className="text-xs text-white/70 mt-1">Sistem SPK & BAST</p>
       </div>
 

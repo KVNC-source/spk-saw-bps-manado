@@ -189,8 +189,6 @@ This project aligns with:
 - Software Engineering best practices
 - Real-world institutional case study
 
-Developed as part of an academic Final Project (Tugas Akhir).
-
 # 📄 License
 
 Developed for educational and institutional purposes only.  

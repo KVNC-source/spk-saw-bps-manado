@@ -27,17 +27,25 @@ const emails = [
 async function main() {
   for (const email of emails) {
     const username = email.split('@')[0];
+
+    // Password format: username123
     const passwordHash = await bcrypt.hash(`${username}123`, 10);
 
     await prisma.user.upsert({
       where: { username },
-      update: {},
+      update: {}, // prevents overwriting if exists
       create: {
         id: randomUUID(),
         username,
-        name: username,
+        name: username
+          .replace('.', ' ')
+          .replace('_', ' ')
+          .replace(/\b\w/g, (l) => l.toUpperCase()),
+        email,
         password: passwordHash,
         role: Role.KETUA_TIM,
+        mitra_id: null,
+        createdAt: new Date(),
       },
     });
 
