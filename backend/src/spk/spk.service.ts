@@ -714,15 +714,11 @@ export class SpkService {
 
       // ================= ADMIN FLOW =================
       if (user.role === 'ADMIN') {
-        let total = 0;
-
         for (const item of data.kegiatan) {
           const kegiatan = kegiatanList.find((k) => k.id === item.kegiatan_id)!;
 
           const tarif = kegiatan.tarif_per_satuan ?? 0;
           const nilai = item.volume * tarif;
-
-          total += nilai;
 
           await tx.spkDocumentItem.create({
             data: {
