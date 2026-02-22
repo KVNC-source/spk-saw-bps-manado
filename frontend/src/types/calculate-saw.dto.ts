@@ -37,3 +37,12 @@ export interface GenerateSpkPayload {
   tahun?: number;
   bulan?: number;
 }
+
+export interface CalculateSawDto {
+  tahun: number;
+  bulan: number;
+  spkRoleId: number;
+  kegiatanIds: number[];
+  tanggalMulai: string;
+  tanggalSelesai: string;
+}
