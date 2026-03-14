@@ -1007,12 +1007,6 @@ export class SpkService {
       throw new NotFoundException('SPK tidak ditemukan');
     }
 
-    if (spk.status === 'APPROVED') {
-      throw new BadRequestException(
-        'Tanggal tidak dapat diubah setelah SPK disetujui',
-      );
-    }
-
     return this.prisma.spkDocument.update({
       where: { id },
       data,

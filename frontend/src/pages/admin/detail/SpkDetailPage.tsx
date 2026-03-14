@@ -147,12 +147,68 @@ export default function SpkDetailPage() {
       api.get(`/spk/${id}/request-items`),
     ]);
 
-    setSpk(spkRes.data);
-    setRequestItems(requestRes.data);
-    setEditMulai(spkRes.data.tanggal_mulai?.slice(0, 10) || "");
-    setEditSelesai(spkRes.data.tanggal_selesai?.slice(0, 10) || "");
-  };
+    const data = spkRes.data;
 
+    setSpk(data);
+    setRequestItems(requestRes.data);
+
+    /* ================= CONTRACT PERIOD ================= */
+
+    setEditMulai(data.tanggal_mulai?.slice(0, 10) || "");
+    setEditSelesai(data.tanggal_selesai?.slice(0, 10) || "");
+
+    /* ================= PARSE LEGAL DATE ================= */
+
+    if (data.tanggal_perjanjian) {
+      const text = data.tanggal_perjanjian;
+
+      const matchHari = hariOptions.find((h) => text.includes(h));
+      const matchBulan = bulanOptions.find((b) => text.includes(b));
+
+      if (matchHari) setHari(matchHari);
+      if (matchBulan) setBulan(matchBulan);
+
+      const tanggalMatch = text.match(/tanggal\s+(\w+)/i);
+
+      if (tanggalMatch) {
+        const angka = parseInt(tanggalMatch[1]);
+        if (!isNaN(angka)) setTanggal(angka);
+      }
+
+      const tahunMatch = text.match(/tahun\s+(\w+)/i);
+
+      if (tahunMatch) {
+        const angka = parseInt(tahunMatch[1]);
+        if (!isNaN(angka)) setTahun(angka);
+      }
+    }
+
+    /* ================= PARSE BAST DATE ================= */
+
+    if (data.tanggal_pembayaran) {
+      const text = data.tanggal_pembayaran;
+
+      const matchHari = hariOptions.find((h) => text.includes(h));
+      const matchBulan = bulanOptions.find((b) => text.includes(b));
+
+      if (matchHari) setHariBayar(matchHari);
+      if (matchBulan) setBulanBayar(matchBulan);
+
+      const tanggalMatch = text.match(/tanggal\s+(\w+)/i);
+
+      if (tanggalMatch) {
+        const angka = parseInt(tanggalMatch[1]);
+        if (!isNaN(angka)) setTanggalBayar(angka);
+      }
+
+      const tahunMatch = text.match(/tahun\s+(\w+)/i);
+
+      if (tahunMatch) {
+        const angka = parseInt(tahunMatch[1]);
+        if (!isNaN(angka)) setTahunBayar(angka);
+      }
+    }
+  };
   useEffect(() => {
     if (!id) return;
     loadSpk().finally(() => setLoading(false));
@@ -454,58 +510,72 @@ export default function SpkDetailPage() {
       </div>
 
       {/* LEGAL INPUT */}
-      {spk.status === "PENDING" && (
-        <div className="bg-white rounded-xl shadow-sm p-6 space-y-4">
+      {/* LEGAL INPUT */}
+      {spk.status !== "CANCELLED" && (
+        <div className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <h2 className="font-semibold">Input Tanggal Legal</h2>
 
-          <div className="grid grid-cols-4 gap-3">
-            <select
-              value={hari}
-              onChange={(e) => setHari(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              {hariOptions.map((h) => (
-                <option key={h}>{h}</option>
-              ))}
-            </select>
+          {/* ================= PERJANJIAN INPUT ================= */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-3">
+              <select
+                value={hari}
+                onChange={(e) => setHari(e.target.value)}
+                className="border rounded px-3 py-2"
+              >
+                {hariOptions.map((h) => (
+                  <option key={h}>{h}</option>
+                ))}
+              </select>
 
-            <select
-              value={tanggal}
-              onChange={(e) => setTanggal(Number(e.target.value))}
-              className="border rounded px-3 py-2"
-            >
-              {[...Array(31)].map((_, i) => (
-                <option key={i + 1}>{i + 1}</option>
-              ))}
-            </select>
+              <select
+                value={tanggal}
+                onChange={(e) => setTanggal(Number(e.target.value))}
+                className="border rounded px-3 py-2"
+              >
+                {[...Array(31)].map((_, i) => (
+                  <option key={i + 1}>{i + 1}</option>
+                ))}
+              </select>
 
-            <select
-              value={bulan}
-              onChange={(e) => setBulan(e.target.value)}
-              className="border rounded px-3 py-2"
-            >
-              {bulanOptions.map((b) => (
-                <option key={b}>{b}</option>
-              ))}
-            </select>
+              <select
+                value={bulan}
+                onChange={(e) => setBulan(e.target.value)}
+                className="border rounded px-3 py-2"
+              >
+                {bulanOptions.map((b) => (
+                  <option key={b}>{b}</option>
+                ))}
+              </select>
 
-            <select
-              value={tahun}
-              onChange={(e) => setTahun(Number(e.target.value))}
-              className="border rounded px-3 py-2"
-            >
-              {[2024, 2025, 2026, 2027].map((t) => (
-                <option key={t}>{t}</option>
-              ))}
-            </select>
+              <select
+                value={tahun}
+                onChange={(e) => setTahun(Number(e.target.value))}
+                className="border rounded px-3 py-2"
+              >
+                {[2024, 2025, 2026, 2027].map((t) => (
+                  <option key={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* PREVIEW PERJANJIAN */}
+            <div className="bg-gray-50 border rounded-lg p-3 text-sm">
+              <p className="text-gray-500 text-xs mb-1">
+                Preview Tanggal Perjanjian
+              </p>
+
+              <p className="font-medium break-words">
+                {buildTanggalPerjanjian()}
+              </p>
+            </div>
           </div>
 
-          {/* PAYMENT DATE */}
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Payment Date</h3>
+          {/* ================= BAST INPUT ================= */}
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Input Tanggal BAST</h3>
 
             <div className="grid grid-cols-4 gap-3">
-              {/* Day */}
               <select
                 value={hariBayar}
                 onChange={(e) => setHariBayar(e.target.value)}
@@ -516,7 +586,6 @@ export default function SpkDetailPage() {
                 ))}
               </select>
 
-              {/* Date */}
               <select
                 value={tanggalBayar}
                 onChange={(e) => setTanggalBayar(Number(e.target.value))}
@@ -527,7 +596,6 @@ export default function SpkDetailPage() {
                 ))}
               </select>
 
-              {/* Month */}
               <select
                 value={bulanBayar}
                 onChange={(e) => setBulanBayar(e.target.value)}
@@ -538,7 +606,6 @@ export default function SpkDetailPage() {
                 ))}
               </select>
 
-              {/* Year */}
               <select
                 value={tahunBayar}
                 onChange={(e) => setTahunBayar(Number(e.target.value))}
@@ -549,14 +616,26 @@ export default function SpkDetailPage() {
                 ))}
               </select>
             </div>
+
+            {/* PREVIEW BAST */}
+            <div className="bg-gray-50 border rounded-lg p-3 text-sm">
+              <p className="text-gray-500 text-xs mb-1">Preview Tanggal BAST</p>
+
+              <p className="font-medium break-words">
+                {buildTanggalPembayaran()}
+              </p>
+            </div>
           </div>
 
+          {/* SAVE BUTTON */}
           <button
             onClick={saveLegalDates}
             disabled={processing}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg"
           >
-            Simpan Tanggal Legal
+            {spk.status === "APPROVED"
+              ? "Update Tanggal Legal"
+              : "Simpan Tanggal Legal"}
           </button>
         </div>
       )}
@@ -597,7 +676,7 @@ export default function SpkDetailPage() {
                 <td className="px-4 py-3">
                   <button
                     onClick={() => deleteItem(k.id)}
-                    className="text-red-500 text-sm"
+                    className="text-black text-sm"
                   >
                     Hapus
                   </button>
@@ -645,7 +724,7 @@ export default function SpkDetailPage() {
                     </button>
                     <button
                       onClick={() => approveItem(item.id, "REJECTED")}
-                      className="text-red-600 text-sm"
+                      className="text-sm"
                     >
                       Reject
                     </button>
